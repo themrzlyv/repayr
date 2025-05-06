@@ -1,0 +1,13 @@
+{
+  "extends": "@repo/typescript-config/nestjs.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["*"],
+      "@prisma/generated": ["prisma/generated"],
+      "@prisma/generated/*": ["prisma/generated/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/shared/types"]
+  }
+}

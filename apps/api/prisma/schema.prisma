@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+model User {
+  id String @id @default(cuid())
+
+  provider    String?
+  provider_id String?
+
+  email    String  @unique
+  password String?
+  role     Role    @default(USER)
+
+  first_name String?
+  last_name  String?
+  phone      String?
+  avatar     String?
+
+  debts    Debt[]
+  sessions Session[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Debt {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  amount      Float
+  pay_date    DateTime
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Category {
+  id    String @id @default(cuid())
+  title String @unique
+  icon  String
+  Debt  Debt[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Contact {
+  id    String  @id @default(cuid())
+  phone String
+  email String?
+}
+
+model Session {
+  id String @id @default(cuid())
+
+  isAuthenticated Boolean
+  role            Role
+  expire          DateTime
+  csrfSecret      String?
+
+  metadata Json?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("Session")
+}
