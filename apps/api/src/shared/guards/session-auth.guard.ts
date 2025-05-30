@@ -17,6 +17,8 @@ export class SessionAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<any> {
     const request = context.switchToHttp().getRequest<Request>();
 
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     if (!request.session.userId || !request.session.isAuthenticated) {
       throw new UnauthorizedException('Not authenticated');
     }

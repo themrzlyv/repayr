@@ -93,9 +93,12 @@ export class AuthService {
       const errorMessage = encodeURIComponent(
         'This email is already registered with a password.',
       );
-      return res.redirect(
-        `http://localhost:3000/sign-in?error=${errorMessage}`,
-      );
+      return res.send(`
+        <script>
+          window.opener?.postMessage({ type: 'google-auth-error', message: '${errorMessage}' }, '*');
+          window.close();
+        </script>
+      `);
     }
 
     req.session.isAuthenticated = true;
@@ -104,7 +107,12 @@ export class AuthService {
     req.session.metadata = getSessionMetadata(req, req.headers['user-agent']);
     req.session.csrfSecret = generateCsrfSecret();
 
-    return res.redirect(`http://localhost:3000/account/dashboard`);
+    return res.send(`
+      <script>
+        window.opener?.postMessage('google-auth-success', '*');
+        window.close();
+      </script>
+  `);
   }
 
   public async register(input: CreateAccountInput) {

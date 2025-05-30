@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Post,
   Req,
@@ -46,7 +47,7 @@ export class AuthController {
     return this.authService.register(input);
   }
 
-  @Get('logout')
+  @Delete('logout')
   public async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
