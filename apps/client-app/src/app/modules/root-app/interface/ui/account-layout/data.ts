@@ -32,9 +32,14 @@ export const getMenuItems = ({ role }: { role: AccountRoleEnum }) => {
           href: "/account/wallet",
         },
         {
-          name: "Loans",
+          name: "Lendings",
           icon: IncomeIcon,
-          href: "/account/loans",
+          href: "/account/lendings",
+        },
+        {
+          name: "Categories",
+          icon: IncomeIcon,
+          href: "/account/categories",
         },
         {
           name: "Data and reports",

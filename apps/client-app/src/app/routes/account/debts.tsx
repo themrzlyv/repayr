@@ -1,3 +1,4 @@
+import { DebtsPage } from "@/app/modules/debts/ui/debts.page";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/account/debts")({
@@ -5,5 +6,5 @@ export const Route = createFileRoute("/account/debts")({
 });
 
 function RouteComponent() {
-  return <div>Hello "/account/debts"!</div>;
+  return <DebtsPage />;
 }

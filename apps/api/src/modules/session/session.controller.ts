@@ -2,7 +2,7 @@ import { Controller, Delete, Get, Param, Req, UseGuards } from '@nestjs/common';
 
 import { SessionService } from './session.service';
 import { Authorized } from '@/src/shared/decorators/authorized.decorator';
-import { Session } from '@/prisma/generated';
+import { Session } from 'express-session';
 import { SessionAuthGuard } from '@/src/shared/guards/session-auth.guard';
 import { RolesGuard } from '@/src/shared/guards/roles.guard';
 import { generateCsrfToken } from '@/src/shared/utils/csrf.util';
@@ -15,7 +15,7 @@ export class SessionController {
 
   @Get('user-sessions')
   public getUserSessions(@Authorized() session: Session) {
-    return this.sessionService.getUserSessions(session.userId);
+    return this.sessionService.getUserSessions(session.user.id);
   }
 
   @Get('/')

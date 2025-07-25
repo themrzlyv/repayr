@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Button, Link } from "@heroui/react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@heroui/react";
 
 export const Route = createFileRoute("/_public/")({
   component: Home,
@@ -16,11 +16,11 @@ function Home() {
           Lorem ipsum dolor sit, amet consectetur adipisicing elit. Illum vitae
           repudiandae totam sed odio commodi amet nisi magnam.
         </p>
-        <div className="flex gap-4">
-          <Button as={Link} href="/sign-in" color="warning">
+        <div className="flex items-center gap-4">
+          <Button as={Link} to="/sign-in" color="warning">
             Get started
           </Button>
-          <Link color="foreground" href="/about" underline="always">
+          <Link color="foreground" to="/about" className="hover:underline">
             Learn more
           </Link>
         </div>

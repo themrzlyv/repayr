@@ -1,27 +1,48 @@
+import { Currency } from '@/prisma/generated';
 import {
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
   Min,
-  MinLength,
 } from 'class-validator';
+
+export class CreateAmount {
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(0.01)
+  value: number;
+
+  @IsEnum(Currency)
+  @IsNotEmpty()
+  currency: Currency;
+}
 
 export class CreateDebtInput {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(20)
-  name: string;
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  lenderId?: string;
 
   @IsString()
   @IsOptional()
   @MaxLength(50)
-  description: string;
+  description?: string;
 
-  @IsNumber()
+  @IsOptional()
+  amount?: CreateAmount;
+
+  @IsString()
   @IsNotEmpty()
-  @MinLength(1)
-  @Min(0.01)
-  amount: number;
+  categoryId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  payDate: Date;
 }

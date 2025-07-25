@@ -6,11 +6,10 @@ export const Authorized = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
     const session = {
       id: request.sessionID,
-      userId: request.session.userId,
       isAuthenticated: request.session.isAuthenticated,
       expire: request.session.expire,
-      role: request.session.role,
       metadata: request.session.metadata,
+      user: request.session.user,
     };
 
     return session;

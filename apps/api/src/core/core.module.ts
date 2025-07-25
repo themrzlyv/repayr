@@ -9,6 +9,10 @@ import { IS_DEV_ENV } from '../shared/utils/is-dev.util';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { SessionModule } from '../modules/session/session.module';
+import { ExchangeModule } from '../modules/exchange/exchange.module';
+import { PaymentModule } from '../modules/payment/payment.module';
+import { LendingModule } from '../modules/lending/lending.module';
+import { AmountModule } from '../modules/amount/amount.module';
 
 @Module({
   imports: [
@@ -22,6 +26,10 @@ import { SessionModule } from '../modules/session/session.module';
     AuthModule,
     CategoryModule,
     DebtModule,
+    ExchangeModule,
+    PaymentModule,
+    LendingModule,
+    AmountModule,
   ],
 })
 export class CoreModule {}

@@ -6,14 +6,13 @@ import { getMenuItems } from "./data";
 import { Navbar, NavbarContent, Skeleton } from "@heroui/react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ExpandIcon } from "@/app/assets/icons";
-import { useAccountContext } from "@/app/modules/account/interface/use-account-context";
+import { useQuery } from "@tanstack/react-query";
+import { accountInfoQueryOption } from "@/app/modules/account/infra/query-options/account-info.query-option";
 
 export function SideBar() {
   const [isExpandedMenu, setIsExpandedMenu] = useState(true);
 
-  const { accountStore } = useAccountContext();
-
-  const { data, isLoading } = accountStore.accountData;
+  const { data, isLoading } = useQuery(accountInfoQueryOption());
 
   const router = useNavigate();
   const { pathname } = useLocation();

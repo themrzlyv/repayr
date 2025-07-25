@@ -65,6 +65,13 @@ export default {
     heroui({
       themes: {
         light: {
+          layout: {
+            borderWidth: {
+              small: "0.5px",
+              medium: "1px",
+              large: "2px",
+            },
+          },
           colors: {
             background: {
               100: "#ffffff",

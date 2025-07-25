@@ -18,15 +18,18 @@ import {
   Link,
 } from "@heroui/react";
 
-import { useAuthContext } from "../../use-auth-context";
 import { GoogleIcon } from "@/app/assets/icons";
 import { LogIn } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { loginMutationOption } from "../../../infra/mutation-options/login.mutation-option";
+import { SessionStorageService } from "@/app/lib/session-storage.service";
 
 export function SignInPage() {
   const navigate = useNavigate();
-  const { authAction, authStore } = useAuthContext();
 
-  const { isLoading } = authStore.signIn;
+  const { mutateAsync: signIn, isPending: isLoading } = useMutation(
+    loginMutationOption()
+  );
 
   const form = useForm<SignInFormSchemaType>({
     resolver: zodResolver(signInFormSchema),
@@ -37,7 +40,7 @@ export function SignInPage() {
   });
 
   const onSubmit = async (data: SignInFormSchemaType) => {
-    await authAction.signIn(data);
+    await signIn(data);
   };
 
   const handleGoogleLogin = () => {
@@ -53,7 +56,11 @@ export function SignInPage() {
     );
 
     const listener = (event: MessageEvent) => {
-      if (event.data === "google-auth-success") {
+      if (
+        typeof event.data === "object" &&
+        event.data?.type === "google-auth-success"
+      ) {
+        SessionStorageService.setUserId(event.data.uid);
         loginWindow?.close();
         window.removeEventListener("message", listener);
         navigate({ to: "/account/dashboard" });

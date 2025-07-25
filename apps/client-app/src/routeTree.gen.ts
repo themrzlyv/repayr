@@ -11,17 +11,28 @@
 // Import Routes
 
 import { Route as rootRoute } from './app/routes/__root'
+import { Route as AdminRouteImport } from './app/routes/admin/route'
 import { Route as AccountRouteImport } from './app/routes/account/route'
 import { Route as PublicRouteImport } from './app/routes/_public/route'
+import { Route as AdminIndexImport } from './app/routes/admin/index'
 import { Route as AccountIndexImport } from './app/routes/account/index'
 import { Route as PublicIndexImport } from './app/routes/_public/index'
-import { Route as AccountLoansImport } from './app/routes/account/loans'
+import { Route as AccountLendingsImport } from './app/routes/account/lendings'
 import { Route as AccountDebtsImport } from './app/routes/account/debts'
 import { Route as AccountDashboardImport } from './app/routes/account/dashboard'
+import { Route as AccountCategoriesImport } from './app/routes/account/categories'
 import { Route as PublicSignUpImport } from './app/routes/_public/sign-up'
 import { Route as PublicSignInImport } from './app/routes/_public/sign-in'
+import { Route as PublicContactImport } from './app/routes/_public/contact'
+import { Route as PublicAboutImport } from './app/routes/_public/about'
 
 // Create/Update Routes
+
+const AdminRouteRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AccountRouteRoute = AccountRouteImport.update({
   id: '/account',
@@ -32,6 +43,12 @@ const AccountRouteRoute = AccountRouteImport.update({
 const PublicRouteRoute = PublicRouteImport.update({
   id: '/_public',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AdminIndexRoute = AdminIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 
 const AccountIndexRoute = AccountIndexImport.update({
@@ -46,9 +63,9 @@ const PublicIndexRoute = PublicIndexImport.update({
   getParentRoute: () => PublicRouteRoute,
 } as any)
 
-const AccountLoansRoute = AccountLoansImport.update({
-  id: '/loans',
-  path: '/loans',
+const AccountLendingsRoute = AccountLendingsImport.update({
+  id: '/lendings',
+  path: '/lendings',
   getParentRoute: () => AccountRouteRoute,
 } as any)
 
@@ -64,6 +81,12 @@ const AccountDashboardRoute = AccountDashboardImport.update({
   getParentRoute: () => AccountRouteRoute,
 } as any)
 
+const AccountCategoriesRoute = AccountCategoriesImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AccountRouteRoute,
+} as any)
+
 const PublicSignUpRoute = PublicSignUpImport.update({
   id: '/sign-up',
   path: '/sign-up',
@@ -73,6 +96,18 @@ const PublicSignUpRoute = PublicSignUpImport.update({
 const PublicSignInRoute = PublicSignInImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => PublicRouteRoute,
+} as any)
+
+const PublicContactRoute = PublicContactImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => PublicRouteRoute,
+} as any)
+
+const PublicAboutRoute = PublicAboutImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => PublicRouteRoute,
 } as any)
 
@@ -94,6 +129,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRoute
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_public/about': {
+      id: '/_public/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof PublicAboutImport
+      parentRoute: typeof PublicRouteImport
+    }
+    '/_public/contact': {
+      id: '/_public/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof PublicContactImport
+      parentRoute: typeof PublicRouteImport
+    }
     '/_public/sign-in': {
       id: '/_public/sign-in'
       path: '/sign-in'
@@ -107,6 +163,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sign-up'
       preLoaderRoute: typeof PublicSignUpImport
       parentRoute: typeof PublicRouteImport
+    }
+    '/account/categories': {
+      id: '/account/categories'
+      path: '/categories'
+      fullPath: '/account/categories'
+      preLoaderRoute: typeof AccountCategoriesImport
+      parentRoute: typeof AccountRouteImport
     }
     '/account/dashboard': {
       id: '/account/dashboard'
@@ -122,11 +185,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountDebtsImport
       parentRoute: typeof AccountRouteImport
     }
-    '/account/loans': {
-      id: '/account/loans'
-      path: '/loans'
-      fullPath: '/account/loans'
-      preLoaderRoute: typeof AccountLoansImport
+    '/account/lendings': {
+      id: '/account/lendings'
+      path: '/lendings'
+      fullPath: '/account/lendings'
+      preLoaderRoute: typeof AccountLendingsImport
       parentRoute: typeof AccountRouteImport
     }
     '/_public/': {
@@ -143,18 +206,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountIndexImport
       parentRoute: typeof AccountRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexImport
+      parentRoute: typeof AdminRouteImport
+    }
   }
 }
 
 // Create and export the route tree
 
 interface PublicRouteRouteChildren {
+  PublicAboutRoute: typeof PublicAboutRoute
+  PublicContactRoute: typeof PublicContactRoute
   PublicSignInRoute: typeof PublicSignInRoute
   PublicSignUpRoute: typeof PublicSignUpRoute
   PublicIndexRoute: typeof PublicIndexRoute
 }
 
 const PublicRouteRouteChildren: PublicRouteRouteChildren = {
+  PublicAboutRoute: PublicAboutRoute,
+  PublicContactRoute: PublicContactRoute,
   PublicSignInRoute: PublicSignInRoute,
   PublicSignUpRoute: PublicSignUpRoute,
   PublicIndexRoute: PublicIndexRoute,
@@ -165,16 +239,18 @@ const PublicRouteRouteWithChildren = PublicRouteRoute._addFileChildren(
 )
 
 interface AccountRouteRouteChildren {
+  AccountCategoriesRoute: typeof AccountCategoriesRoute
   AccountDashboardRoute: typeof AccountDashboardRoute
   AccountDebtsRoute: typeof AccountDebtsRoute
-  AccountLoansRoute: typeof AccountLoansRoute
+  AccountLendingsRoute: typeof AccountLendingsRoute
   AccountIndexRoute: typeof AccountIndexRoute
 }
 
 const AccountRouteRouteChildren: AccountRouteRouteChildren = {
+  AccountCategoriesRoute: AccountCategoriesRoute,
   AccountDashboardRoute: AccountDashboardRoute,
   AccountDebtsRoute: AccountDebtsRoute,
-  AccountLoansRoute: AccountLoansRoute,
+  AccountLendingsRoute: AccountLendingsRoute,
   AccountIndexRoute: AccountIndexRoute,
 }
 
@@ -182,39 +258,65 @@ const AccountRouteRouteWithChildren = AccountRouteRoute._addFileChildren(
   AccountRouteRouteChildren,
 )
 
+interface AdminRouteRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '': typeof PublicRouteRouteWithChildren
   '/account': typeof AccountRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/about': typeof PublicAboutRoute
+  '/contact': typeof PublicContactRoute
   '/sign-in': typeof PublicSignInRoute
   '/sign-up': typeof PublicSignUpRoute
+  '/account/categories': typeof AccountCategoriesRoute
   '/account/dashboard': typeof AccountDashboardRoute
   '/account/debts': typeof AccountDebtsRoute
-  '/account/loans': typeof AccountLoansRoute
+  '/account/lendings': typeof AccountLendingsRoute
   '/': typeof PublicIndexRoute
   '/account/': typeof AccountIndexRoute
+  '/admin/': typeof AdminIndexRoute
 }
 
 export interface FileRoutesByTo {
+  '/about': typeof PublicAboutRoute
+  '/contact': typeof PublicContactRoute
   '/sign-in': typeof PublicSignInRoute
   '/sign-up': typeof PublicSignUpRoute
+  '/account/categories': typeof AccountCategoriesRoute
   '/account/dashboard': typeof AccountDashboardRoute
   '/account/debts': typeof AccountDebtsRoute
-  '/account/loans': typeof AccountLoansRoute
+  '/account/lendings': typeof AccountLendingsRoute
   '/': typeof PublicIndexRoute
   '/account': typeof AccountIndexRoute
+  '/admin': typeof AdminIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_public': typeof PublicRouteRouteWithChildren
   '/account': typeof AccountRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/_public/about': typeof PublicAboutRoute
+  '/_public/contact': typeof PublicContactRoute
   '/_public/sign-in': typeof PublicSignInRoute
   '/_public/sign-up': typeof PublicSignUpRoute
+  '/account/categories': typeof AccountCategoriesRoute
   '/account/dashboard': typeof AccountDashboardRoute
   '/account/debts': typeof AccountDebtsRoute
-  '/account/loans': typeof AccountLoansRoute
+  '/account/lendings': typeof AccountLendingsRoute
   '/_public/': typeof PublicIndexRoute
   '/account/': typeof AccountIndexRoute
+  '/admin/': typeof AdminIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -222,44 +324,60 @@ export interface FileRouteTypes {
   fullPaths:
     | ''
     | '/account'
+    | '/admin'
+    | '/about'
+    | '/contact'
     | '/sign-in'
     | '/sign-up'
+    | '/account/categories'
     | '/account/dashboard'
     | '/account/debts'
-    | '/account/loans'
+    | '/account/lendings'
     | '/'
     | '/account/'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/about'
+    | '/contact'
     | '/sign-in'
     | '/sign-up'
+    | '/account/categories'
     | '/account/dashboard'
     | '/account/debts'
-    | '/account/loans'
+    | '/account/lendings'
     | '/'
     | '/account'
+    | '/admin'
   id:
     | '__root__'
     | '/_public'
     | '/account'
+    | '/admin'
+    | '/_public/about'
+    | '/_public/contact'
     | '/_public/sign-in'
     | '/_public/sign-up'
+    | '/account/categories'
     | '/account/dashboard'
     | '/account/debts'
-    | '/account/loans'
+    | '/account/lendings'
     | '/_public/'
     | '/account/'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   PublicRouteRoute: typeof PublicRouteRouteWithChildren
   AccountRouteRoute: typeof AccountRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   PublicRouteRoute: PublicRouteRouteWithChildren,
   AccountRouteRoute: AccountRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -273,12 +391,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_public",
-        "/account"
+        "/account",
+        "/admin"
       ]
     },
     "/_public": {
       "filePath": "_public/route.tsx",
       "children": [
+        "/_public/about",
+        "/_public/contact",
         "/_public/sign-in",
         "/_public/sign-up",
         "/_public/"
@@ -287,11 +408,26 @@ export const routeTree = rootRoute
     "/account": {
       "filePath": "account/route.tsx",
       "children": [
+        "/account/categories",
         "/account/dashboard",
         "/account/debts",
-        "/account/loans",
+        "/account/lendings",
         "/account/"
       ]
+    },
+    "/admin": {
+      "filePath": "admin/route.tsx",
+      "children": [
+        "/admin/"
+      ]
+    },
+    "/_public/about": {
+      "filePath": "_public/about.tsx",
+      "parent": "/_public"
+    },
+    "/_public/contact": {
+      "filePath": "_public/contact.tsx",
+      "parent": "/_public"
     },
     "/_public/sign-in": {
       "filePath": "_public/sign-in.tsx",
@@ -301,6 +437,10 @@ export const routeTree = rootRoute
       "filePath": "_public/sign-up.tsx",
       "parent": "/_public"
     },
+    "/account/categories": {
+      "filePath": "account/categories.tsx",
+      "parent": "/account"
+    },
     "/account/dashboard": {
       "filePath": "account/dashboard.tsx",
       "parent": "/account"
@@ -309,8 +449,8 @@ export const routeTree = rootRoute
       "filePath": "account/debts.tsx",
       "parent": "/account"
     },
-    "/account/loans": {
-      "filePath": "account/loans.tsx",
+    "/account/lendings": {
+      "filePath": "account/lendings.tsx",
       "parent": "/account"
     },
     "/_public/": {
@@ -320,6 +460,10 @@ export const routeTree = rootRoute
     "/account/": {
       "filePath": "account/index.tsx",
       "parent": "/account"
+    },
+    "/admin/": {
+      "filePath": "admin/index.tsx",
+      "parent": "/admin"
     }
   }
 }

@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { SessionMetaData } from '../types/session-metadata.types';
-import { generateCsrfSecret } from '../utils/csrf.util';
 
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
@@ -17,14 +16,13 @@ export class SessionAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<any> {
     const request = context.switchToHttp().getRequest<Request>();
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    if (!request.session.userId || !request.session.isAuthenticated) {
+    if (!request.session.user.id || !request.session.isAuthenticated) {
       throw new UnauthorizedException('Not authenticated');
     }
 
     const session = await this.prismaService.session.findUnique({
       where: { id: request.sessionID },
+      include: { user: true },
     });
 
     if (!session || !session.isAuthenticated) {
@@ -33,8 +31,7 @@ export class SessionAuthGuard implements CanActivate {
 
     request.session.expire = session.expire;
     request.session.isAuthenticated = session.isAuthenticated;
-    request.session.userId = session.userId;
-    request.session.role = session.role;
+    request.session.user = session.user;
     request.session.metadata = session.metadata as SessionMetaData;
     request.session.csrfSecret = session.csrfSecret;
 

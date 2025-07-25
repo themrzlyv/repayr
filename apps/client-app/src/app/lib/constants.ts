@@ -18,3 +18,5 @@ export const menuItems = [
     label: "Contact",
   },
 ];
+
+export const DEFAULT_TABLE_PER_PAGE = 5;

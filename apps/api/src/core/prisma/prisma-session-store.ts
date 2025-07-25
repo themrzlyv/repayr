@@ -24,6 +24,7 @@ export class PrismaSessionStore extends Store implements OnModuleInit {
     try {
       const dbSession = await this.prisma.session.findUnique({
         where: { id },
+        include: { user: true },
       });
 
       if (!dbSession || dbSession.expire < new Date()) {
@@ -35,8 +36,7 @@ export class PrismaSessionStore extends Store implements OnModuleInit {
           maxAge: dbSession.expire.getTime() - Date.now(),
         },
         isAuthenticated: dbSession.isAuthenticated,
-        userId: dbSession.userId,
-        role: dbSession.role,
+        user: dbSession.user,
         metadata: dbSession.metadata,
         csrfSecret: dbSession.csrfSecret,
       } as any;
@@ -61,18 +61,16 @@ export class PrismaSessionStore extends Store implements OnModuleInit {
         where: { id },
         update: {
           isAuthenticated: (sessionData as any).isAuthenticated ?? false,
-          userId: (sessionData as any).userId ?? null,
+          userId: (sessionData as any).user.id ?? null,
           expire: expires,
-          role: (sessionData as any).role ?? null,
           metadata: (sessionData as any).metadata ?? null,
           csrfSecret: (sessionData as any).csrfSecret ?? undefined,
         },
         create: {
           id,
           isAuthenticated: (sessionData as any).isAuthenticated ?? false,
-          userId: (sessionData as any).userId ?? null,
+          userId: (sessionData as any).user.id ?? null,
           expire: expires,
-          role: (sessionData as any).role ?? null,
           metadata: (sessionData as any).metadata ?? null,
           csrfSecret: (sessionData as any).csrfSecret ?? undefined,
         },

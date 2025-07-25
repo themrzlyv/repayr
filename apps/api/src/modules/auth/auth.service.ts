@@ -16,6 +16,7 @@ import { hash, verify } from 'argon2';
 import { IS_DEV_ENV } from '@/src/shared/utils/is-dev.util';
 import { getSessionMetadata } from '@/src/shared/utils/session-metadata.util';
 import { generateCsrfSecret } from '@/src/shared/utils/csrf.util';
+import { slugify } from '@/src/shared/utils/slugify.util';
 
 @Injectable()
 export class AuthService {
@@ -43,9 +44,8 @@ export class AuthService {
         const metadata = getSessionMetadata(req, req.headers['user-agent']);
 
         req.session.isAuthenticated = true;
-        req.session.userId = user.id;
-        req.session.role = user.role;
         req.session.metadata = metadata;
+        req.session.user = safeUser;
         req.session.csrfSecret = generateCsrfSecret();
 
         req.session.save((err) => {
@@ -70,21 +70,25 @@ export class AuthService {
     });
 
     if (!existUser) {
-      const { email, provider, provider_id, first_name, last_name, avatar } =
+      const { email, provider, providerId, firstName, lastName, avatar } =
         user;
       const isExistEmail = await this.prismaService.user.findUnique({
         where: { email: user.email },
       });
 
       if (isExistEmail) throw new ConflictException('Email already exists');
+
+      const tagName = await this.generateUniqueTagName(firstName, lastName);
+
       existUser = await this.prismaService.user.create({
         data: {
           email,
-          first_name,
-          last_name,
+          firstName,
+          lastName,
           provider,
-          provider_id,
+          providerId,
           avatar,
+          tagName,
         },
       });
     }
@@ -102,32 +106,35 @@ export class AuthService {
     }
 
     req.session.isAuthenticated = true;
-    req.session.userId = existUser.id;
-    req.session.role = existUser.role;
+    req.session.user = existUser;
     req.session.metadata = getSessionMetadata(req, req.headers['user-agent']);
     req.session.csrfSecret = generateCsrfSecret();
 
     return res.send(`
       <script>
-        window.opener?.postMessage('google-auth-success', '*');
+        window.opener?.postMessage({type: 'google-auth-success', uid: '${existUser.id}' }, '*');
         window.close();
       </script>
   `);
   }
 
   public async register(input: CreateAccountInput) {
-    const { email, password, first_name, last_name } = input;
+    const { email, password, firstName, lastName } = input;
     const isExistEmail = await this.prismaService.user.findUnique({
       where: { email: input.email },
     });
 
     if (isExistEmail) throw new ConflictException('Email already exists');
+
+    const tagName = await this.generateUniqueTagName(firstName, lastName);
+
     await this.prismaService.user.create({
       data: {
         email,
         password: await hash(password),
-        first_name,
-        last_name,
+        firstName,
+        lastName,
+        tagName,
       },
     });
 
@@ -152,5 +159,20 @@ export class AuthService {
         }
       });
     });
+  }
+
+  private async generateUniqueTagName(
+    firstName: string,
+    lastName: string,
+  ): Promise<string> {
+    const baseSlug = slugify(`${firstName} ${lastName}`);
+    let tagName = baseSlug;
+    let suffix = 1;
+
+    while (await this.prismaService.user.findUnique({ where: { tagName } })) {
+      tagName = `${baseSlug}-${suffix++}`;
+    }
+
+    return tagName;
   }
 }

@@ -1,6 +1,7 @@
-import { useAuthContext } from "@/app/modules/auth/interface/use-auth-context";
-import { useAlertModalStore } from "@/app/shared/components/alert-modal/alert-modal.store";
+import { AuthAdapter } from "@/app/modules/auth/infra/auth.adapter";
+import { useDrawerStore } from "@/app/shared/components/drawer/use-drawer.store";
 import { Button } from "@heroui/react";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/account/dashboard")({
@@ -8,22 +9,15 @@ export const Route = createFileRoute("/account/dashboard")({
 });
 
 function RouteComponent() {
-
-  const { authAction } = useAuthContext()
-
-  const { open } = useAlertModalStore();
+  const { openDrawer } = useDrawerStore();
 
   return (
     <div>
       Account Dashboard
       <Button
         onClick={() =>
-          open({
+          openDrawer({
             title: "hello",
-            description: "world",
-            onClose: async () => {
-              await authAction.logout();
-            },
           })
         }
       >

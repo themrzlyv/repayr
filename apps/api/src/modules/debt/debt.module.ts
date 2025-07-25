@@ -1,11 +1,15 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { DebtController } from './debt.controller';
 import { DebtService } from './debt.service';
-import { AccountService } from '../account/account.service';
+import { ExchangeModule } from '../exchange/exchange.module';
+
+import { OrchestratorsModule } from '../orchestrators/orchestrators.module';
 
 @Module({
+  imports: [ExchangeModule, forwardRef(() => OrchestratorsModule)],
   controllers: [DebtController],
-  providers: [DebtService, AccountService],
+  providers: [DebtService],
+  exports: [DebtService],
 })
 export class DebtModule {}

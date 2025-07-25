@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { Role, Session, User } from '@/prisma/generated';
+import { Role } from '@/prisma/generated';
 import { Roles } from '@/src/shared/decorators/roles.decorator';
 import { RolesGuard } from '@/src/shared/guards/roles.guard';
 
@@ -20,6 +20,7 @@ import { SessionAuthGuard } from '@/src/shared/guards/session-auth.guard';
 import { Authorized } from '@/src/shared/decorators/authorized.decorator';
 import { CategoryQueriesInput } from './inputs/category-queries.input';
 import { CsrfGuard } from '@/src/shared/guards/csrf.guard';
+import { Session } from 'express-session';
 
 @Controller('category')
 @UseGuards(SessionAuthGuard, CsrfGuard, RolesGuard)
@@ -27,9 +28,11 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post('create')
-  @Roles(Role.ADMIN)
-  public async createCategory(@Body() input: CreateCategoryInput) {
-    return this.categoryService.createCategory(input);
+  public async createCategory(
+    @Body() input: CreateCategoryInput,
+    @Authorized() session: Session,
+  ) {
+    return this.categoryService.createCategory(input, session);
   }
 
   @Get('')
@@ -37,7 +40,15 @@ export class CategoryController {
     @Authorized() session: Session,
     @Query() query: CategoryQueriesInput,
   ) {
-    return await this.categoryService.getCategories(session.userId, query);
+    return await this.categoryService.getCategories(session.user.id, query);
+  }
+
+  @Get('summary')
+  public async getCategoriesSummary(@Authorized() session: Session) {
+    return await this.categoryService.getCategoriesSummary(
+      session.user.id,
+      session.user.currency,
+    );
   }
 
   @Get(':id')

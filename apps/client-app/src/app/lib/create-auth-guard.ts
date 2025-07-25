@@ -5,7 +5,8 @@ import {
 } from "@tanstack/react-router";
 import { authRoutes } from "@/app/lib/constants";
 import { SessionStorageService } from "./session-storage.service";
-import { SessionStore } from "../modules/root-app/interface/store/session.store";
+import type { QueryClient } from "@tanstack/react-query";
+import { verifySessionQueryOption } from "../modules/root-app/infra/query-options/verify-session.query-option";
 
 type AuthGuardArgs = {
   redirectTo: string;
@@ -16,9 +17,14 @@ export function createAuthGuard({
   redirectTo,
   allowUnauthenticated = false,
 }: AuthGuardArgs) {
-  return async ({ location }: { location: ParsedLocation }) => {
+  return async ({
+    location,
+    context: { queryClient },
+  }: {
+    location: ParsedLocation;
+    context: { queryClient: QueryClient };
+  }) => {
     try {
-      const sessionStore = SessionStore.getInstance();
       const currentPath = location.pathname;
       const hasSession = Boolean(SessionStorageService.getUserId());
 
@@ -32,9 +38,11 @@ export function createAuthGuard({
 
       if (!hasSession) return;
 
-      const { sessionData } = sessionStore.getState();
+      const sessionData = await queryClient.ensureQueryData(
+        verifySessionQueryOption()
+      );
 
-      const isAuthed = sessionData?.data?.session?.isAuthenticated;
+      const isAuthed = sessionData?.session?.isAuthenticated;
 
       // ✅ Authenticated users trying to access /sign-in, /sign-up, etc.
       if (allowUnauthenticated && isAuthed && isAuthRoute) {

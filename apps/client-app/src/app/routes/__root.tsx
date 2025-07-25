@@ -1,8 +1,13 @@
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-// import { AlertModal } from "../shared/components/alert-modal/alert-modal";
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Modal } from "../shared/components/modal/modal";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
+import { Drawer } from "../shared/components/drawer/drawer";
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   component: RootApp,
 });
 
@@ -10,8 +15,10 @@ function RootApp() {
   return (
     <>
       <Outlet />
-      {/* <AlertModal /> */}
+      <Drawer />
+      <Modal />
       <TanStackRouterDevtools />
+      <ReactQueryDevtools position="bottom" />
     </>
   );
 }

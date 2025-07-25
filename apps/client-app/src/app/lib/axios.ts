@@ -1,6 +1,7 @@
 import axiosStatic, { AxiosError } from "axios";
 import type { AxiosInstance, AxiosResponse } from "axios";
 import { API_URL } from "@/app/lib/constants";
+import { useModalStore } from "../shared/components/modal/use-modal.store";
 
 let axiosInstance: AxiosInstance | null = null;
 
@@ -48,19 +49,11 @@ async function handleError(error: AxiosError) {
   );
 
   if (is401 && !shouldIgnore) {
-    const { open } = (
-      await import("@/app/shared/components/alert-modal/alert-modal.store")
-    ).useAlertModalStore.getState();
-    const { AuthAction } = await import(
-      "@/app/modules/auth/interface/actions/auth.action"
-    );
-    open({
+    const { openModal } = useModalStore.getState();
+    openModal({
       title: "Session expired",
-      description: "You have been logged out. Please sign in again.",
-      onClose: async () => {
-        const authAction = AuthAction.getInstance();
-        await authAction.logout();
-      },
+      type: "session-expired",
+      content: "Your session has expired. Please login again.",
     });
   }
 

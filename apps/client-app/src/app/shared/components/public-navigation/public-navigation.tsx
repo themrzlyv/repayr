@@ -16,18 +16,19 @@ import {
   Link,
 } from "@heroui/react";
 
-import { useRootContext } from "@/app/modules/root-app/interface/use-root-context";
+import { verifySessionQueryOption } from "@/app/modules/root-app/infra/query-options/verify-session.query-option";
+import { useQuery } from "@tanstack/react-query";
 
 export function PublicNavigation() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [scrollPosition, setScrollPosition] = React.useState(0);
 
-  const { sessionStore } = useRootContext();
-
-  const { sessionData } = sessionStore;
-
-  const { isLoading: sessionLoading, error, data } = sessionData;
+  const {
+    isLoading: sessionLoading,
+    error,
+    data,
+  } = useQuery(verifySessionQueryOption());
 
   const hasSession = Boolean(SessionStorageService.getUserId());
 
@@ -71,28 +72,22 @@ export function PublicNavigation() {
       </NavbarContent>
 
       <NavbarContent className="sm:hidden pr-3" justify="center">
-        <NavbarBrand as={RouterLink} to={"/"}>
-          <Link
-            as={RouterLink}
-            color="primary"
-            className="font-semibold font-sansation text-2xl"
-            to="/"
-          >
-            Repayr
-          </Link>
+        <NavbarBrand
+          as={RouterLink}
+          className="font-semibold font-sansation text-2xl"
+          to={"/"}
+        >
+          Repayr
         </NavbarBrand>
       </NavbarContent>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="start">
-        <NavbarBrand>
-          <Link
-            as={RouterLink}
-            color="primary"
-            className="font-semibold font-sansation text-2xl"
-            to="/"
-          >
-            Repayr
-          </Link>
+        <NavbarBrand
+          as={RouterLink}
+          to="/"
+          className="font-semibold font-sansation text-2xl"
+        >
+          Repayr
         </NavbarBrand>
       </NavbarContent>
 
@@ -124,6 +119,7 @@ export function PublicNavigation() {
           <NavbarMenuItem key={`${item}-${index}`}>
             <Link
               className="w-full"
+              as={RouterLink}
               color={
                 index === 2
                   ? "warning"
@@ -131,7 +127,7 @@ export function PublicNavigation() {
                     ? "danger"
                     : "foreground"
               }
-              href="#"
+              to={item.path}
               size="lg"
             >
               {item.label}

@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+import { CategoryTypeEnum } from '../types/category-type.enum';
 
 export class CreateCategoryInput {
   @IsString()
@@ -10,4 +18,8 @@ export class CreateCategoryInput {
   @IsString()
   @IsNotEmpty()
   icon: string;
+
+  @IsOptional()
+  @IsEnum(CategoryTypeEnum)
+  type: CategoryTypeEnum;
 }

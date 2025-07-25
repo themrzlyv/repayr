@@ -13,18 +13,16 @@ import {
   CardBody,
   Divider,
   CardFooter,
+  Button,
 } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
-import { authAdapter } from "../../../infra/auth.adapter";
-import { Button } from "@/app/shared/ui/button";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 export function SignUpPage() {
   const navigate = useNavigate();
 
-  const { mutateAsync: signInMutation, isPending } = useMutation({
-    mutationFn: authAdapter.signIn,
-  });
+  // const { mutateAsync: signInMutation, isPending } = useMutation({
+  //   mutationFn: authAdapter.signIn,
+  // });
 
   const form = useForm<SignInFormSchemaType>({
     resolver: zodResolver(signInFormSchema),
@@ -35,13 +33,13 @@ export function SignUpPage() {
   });
 
   const onSubmit = (data: SignInFormSchemaType) => {
-    signInMutation(data)
-      .then(() => {
-        navigate({ to: "/account/dashboard" });
-      })
-      .catch(error => {
-        console.log("Error signing in:", error);
-      });
+    // signInMutation(data)
+    //   .then(() => {
+    //     navigate({ to: "/account/dashboard" });
+    //   })
+    //   .catch(error => {
+    //     console.log("Error signing in:", error);
+    //   });
   };
 
   const handleGoogleLogin = () => {
@@ -88,9 +86,7 @@ export function SignUpPage() {
           <h2 className="text-2xl text-left font-sansation font-medium ">
             Join us!
           </h2>
-          <Button variant="outline" onClick={handleGoogleLogin}>
-            Sign up with Google
-          </Button>
+          <Button onClick={handleGoogleLogin}>Sign up with Google</Button>
         </CardHeader>
         <Divider className="my-4" />
 
