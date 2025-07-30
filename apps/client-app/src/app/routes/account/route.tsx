@@ -5,7 +5,6 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 export const Route = createFileRoute("/account")({
   component: RouteComponent,
   beforeLoad: createAuthGuard({
-    redirectTo: "/sign-in",
     allowUnauthenticated: false,
   }),
 });

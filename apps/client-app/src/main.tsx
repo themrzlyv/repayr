@@ -3,11 +3,10 @@ import { RouterProvider } from "@tanstack/react-router";
 import "./index.css";
 import { router } from "./app/lib/base-router.ts";
 import { Loading } from "./app/shared/components/loading/loading.tsx";
-import { SessionStorageService } from "./app/lib/session-storage.service.ts";
 import { HeroUIProvider } from "@heroui/react";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
-import { verifySessionQueryOption } from "./app/modules/root-app/infra/query-options/verify-session.query-option.ts";
 import { queryClient } from "./app/lib/query-client.ts";
+import { refreshTokenQueryOption } from "./app/modules/auth/infra/query-options/refresh-token.query-option.ts";
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -16,10 +15,9 @@ declare module "@tanstack/react-router" {
 }
 
 function App() {
-  const { isLoading, isFetched } = useQuery(verifySessionQueryOption());
-  const hasSession = Boolean(SessionStorageService.getUserId());
+  const { isLoading, isFetching } = useQuery(refreshTokenQueryOption());
 
-  if (isLoading && hasSession && !isFetched) {
+  if (isLoading || isFetching) {
     return <Loading />;
   }
 

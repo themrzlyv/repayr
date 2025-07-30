@@ -1,14 +1,9 @@
 import { Module } from '@nestjs/common';
-import { SessionController } from './session.controller';
+import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { SessionService } from './session.service';
-import { PrismaSessionStore } from '@/src/core/prisma/prisma-session-store';
-import { SessionMiddleware } from '@/src/shared/middlewares/session-middleware';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ConfigModule],
-  controllers: [SessionController],
-  providers: [SessionService, PrismaSessionStore, SessionMiddleware],
+  providers: [PrismaService, SessionService],
   exports: [SessionService],
 })
 export class SessionModule {}

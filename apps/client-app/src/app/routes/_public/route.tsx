@@ -5,7 +5,6 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 export const Route = createFileRoute("/_public")({
   component: RouteComponent,
   beforeLoad: createAuthGuard({
-    redirectTo: "/account/dashboard",
     allowUnauthenticated: true,
   }),
 });

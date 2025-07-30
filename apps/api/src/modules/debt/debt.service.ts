@@ -68,8 +68,7 @@ export class DebtService {
     return debt;
   }
 
-  public async getDebts(session: Session, input: DebtListQuery) {
-    const userId = session.user.id;
+  public async getDebts(userId: string, input: DebtListQuery) {
     const { sortDirection, sortField, searchQuery } = input;
 
     const page = Number(input.page || 1);

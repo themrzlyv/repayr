@@ -3,11 +3,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "@tanstack/react-router";
 
 import {
-  signInFormSchema,
-  type SignInFormSchemaType,
-} from "../../schema/sign-in-form.schema";
-
-import {
   Card,
   CardHeader,
   CardFooter,
@@ -20,12 +15,23 @@ import {
 
 import { GoogleIcon } from "@/app/assets/icons";
 import { LogIn } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { loginMutationOption } from "../../../infra/mutation-options/login.mutation-option";
-import { SessionStorageService } from "@/app/lib/session-storage.service";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "../../interface/stores/use-auth.store";
+import { loginMutationOption } from "../../infra/mutation-options/login.mutation-option";
+import {
+  signInFormSchema,
+  type SignInFormSchemaType,
+} from "../../interface/schema/sign-in-form.schema";
+import { refreshTokenQueryOption } from "../../infra/query-options/refresh-token.query-option";
 
 export function SignInPage() {
   const navigate = useNavigate();
+  const { setAcessToken, accessToken } = useAuthStore();
+
+  useQuery({
+    ...refreshTokenQueryOption(),
+    enabled: !!accessToken,
+  });
 
   const { mutateAsync: signIn, isPending: isLoading } = useMutation(
     loginMutationOption()
@@ -60,7 +66,7 @@ export function SignInPage() {
         typeof event.data === "object" &&
         event.data?.type === "google-auth-success"
       ) {
-        SessionStorageService.setUserId(event.data.uid);
+        setAcessToken({ accessToken: event.data.access });
         loginWindow?.close();
         window.removeEventListener("message", listener);
         navigate({ to: "/account/dashboard" });

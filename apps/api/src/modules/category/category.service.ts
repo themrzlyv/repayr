@@ -9,6 +9,8 @@ import { Currency, Role } from '@/prisma/generated';
 import { Session } from 'express-session';
 import { ExchangeService } from '../exchange/exchange.service';
 import { CategorySummaryMap } from './types/category-summary-type';
+import { TokenPayloadDto } from '../jwt-token/dtos/token-payload.dto';
+import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
 
 @Injectable()
 export class CategoryService {
@@ -17,7 +19,10 @@ export class CategoryService {
     private readonly exchangeService: ExchangeService,
   ) {}
 
-  public async createCategory(input: CreateCategoryInput, session: Session) {
+  public async createCategory(
+    input: CreateCategoryInput,
+    userData: RequestUserEntity,
+  ) {
     const { title, icon, type } = input;
 
     const isExistCategory = await this.prismaService.category.findUnique({
@@ -28,7 +33,7 @@ export class CategoryService {
       return new BadRequestException('Category already exists');
     }
 
-    if (type === CategoryTypeEnum.SYSTEM && session.user.role !== Role.ADMIN) {
+    if (type === CategoryTypeEnum.SYSTEM && userData.role !== Role.ADMIN) {
       return new BadRequestException('Only admin can create system category');
     }
 
@@ -38,7 +43,7 @@ export class CategoryService {
         icon,
         type: type || CategoryTypeEnum.CUSTOM,
         ...(type !== CategoryTypeEnum.SYSTEM && {
-          user: { connect: { id: session.user.id } },
+          user: { connect: { id: userData.id } },
         }),
       },
     });

@@ -49,8 +49,7 @@ export class LendingService {
     return lending;
   }
 
-  public async getLendings(session: Session, input: LendingListQuery) {
-    const userId = session.user.id;
+  public async getLendings(userId: string, input: LendingListQuery) {
     const { sortDirection, sortField, searchQuery } = input;
 
     const page = Number(input.page || 1);

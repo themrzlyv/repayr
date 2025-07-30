@@ -1,10 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import { CategoryAdapter } from "../category.adapter";
-import type { CurrencyEnum } from "@/app/modules/debts/domain/enums/currency.enum";
+import { queryKeys } from "@/app/shared/data/query-keys";
 
 export function categoriesSummaryQueryOption() {
   return queryOptions({
-    queryKey: ["categories-summary"],
+    queryKey: [queryKeys.CATEGORIES_SUMMARY],
     queryFn: () => CategoryAdapter.getInstance().getCategoriesSummary(),
     placeholderData: previousData => previousData,
   });

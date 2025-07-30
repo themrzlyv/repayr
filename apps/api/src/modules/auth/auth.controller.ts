@@ -16,6 +16,7 @@ import { CreateAccountInput } from './inputs/create-account.input';
 
 import { AuthService } from './auth.service';
 import { LoginInput } from './inputs/login.input';
+import { JwtRefreshGuard } from '@/src/shared/guards/jwt-refresh.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -28,6 +29,15 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.authService.login(input, req, res);
+  }
+
+  @Get('refresh')
+  @UseGuards(JwtRefreshGuard)
+  public async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.authService.refresh(req, res);
   }
 
   @Get('google')

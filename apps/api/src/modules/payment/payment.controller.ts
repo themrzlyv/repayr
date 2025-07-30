@@ -1,22 +1,21 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { SessionAuthGuard } from '@/src/shared/guards/session-auth.guard';
-import { CsrfGuard } from '@/src/shared/guards/csrf.guard';
-import { RolesGuard } from '@/src/shared/guards/roles.guard';
-import { Authorized } from '@/src/shared/decorators/authorized.decorator';
-import { Session } from 'express-session';
+
 import { CreatePaymentInput } from './inputs/create-payment.input';
+import { Auth } from '@/src/shared/decorators/auth.decorator';
+import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
+import { RequestUser } from '@/src/shared/decorators/request-user.decorator';
 
 @Controller('payment')
-@UseGuards(SessionAuthGuard, CsrfGuard, RolesGuard)
+@Auth()
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('create')
   public async createPayment(
     @Body() input: CreatePaymentInput,
-    @Authorized() session: Session,
+    @RequestUser() user: RequestUserEntity,
   ) {
-    return this.paymentService.createPayment(input, session.user.id);
+    return this.paymentService.createPayment(input, user.id);
   }
 }

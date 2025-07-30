@@ -9,9 +9,9 @@ import { UpdateAccountInput } from './inputs/update-account.input';
 export class AccountService {
   public constructor(private readonly prismaService: PrismaService) {}
 
-  public async me(session: Session) {
+  public async me(userId: string) {
     const user = await this.prismaService.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       include: {
         debts: {
           include: {
@@ -75,9 +75,9 @@ export class AccountService {
     return users;
   }
 
-  public async updateAccount(session: Session, input: UpdateAccountInput) {
+  public async updateAccount(userId: string, input: UpdateAccountInput) {
     await this.prismaService.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: { currency: input.currency },
     });
 

@@ -4,10 +4,13 @@ import { GoogleStrategy } from '@/src/shared/strategies/google.strategy';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtTokenModule } from '../jwt-token/jwt-token.module';
+import { CookieService } from '@/src/shared/services/cookie.service';
+import { SessionModule } from '../session/session.module';
 
 @Module({
-  imports: [],
+  imports: [JwtTokenModule, SessionModule],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy],
+  providers: [AuthService, GoogleStrategy, CookieService],
 })
 export class AuthModule {}

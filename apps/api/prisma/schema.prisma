@@ -11,7 +11,7 @@ datasource db {
 model User {
   id String @id @default(cuid())
 
-  provider    String?
+  provider   String?
   providerId String?
 
   tagName String @unique
@@ -22,9 +22,9 @@ model User {
 
   firstName String?
   lastName  String?
-  phone      String?
-  avatar     String?
-  currency   Currency @default(USD)
+  phone     String?
+  avatar    String?
+  currency  Currency @default(USD)
 
   debts    Debt[]    @relation("UserDebts")
   lendings Lending[] @relation("UserLendings")
@@ -43,7 +43,7 @@ model Debt {
   id          String   @id @default(cuid())
   name        String?
   description String?
-  payDate    DateTime
+  payDate     DateTime
   status      Status   @default(PENDING)
 
   amount Amount? @relation("DebtToAmount")
@@ -66,7 +66,7 @@ model Lending {
   id          String   @id @default(cuid())
   name        String?
   description String?
-  dueDate    DateTime
+  dueDate     DateTime
   status      Status   @default(PENDING)
 
   amount Amount? @relation("LendingToAmount")
@@ -78,7 +78,7 @@ model Lending {
   user   User   @relation("UserLendings", fields: [userId], references: [id])
 
   debtId String @unique
-  debt   Debt?   @relation("DebtToLending", fields: [debtId], references: [id], onDelete: Cascade)
+  debt   Debt?  @relation("DebtToLending", fields: [debtId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -144,14 +144,19 @@ model Contact {
 model Session {
   id String @id @default(cuid())
 
-  isAuthenticated Boolean
-  expire          DateTime
-  csrfSecret      String?
+  csrfSecret String?
+  token      String  @unique
 
-  metadata Json?
+  fingerprint String
+
+  expire    DateTime
+  rotatedAt DateTime?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("Session")
 }

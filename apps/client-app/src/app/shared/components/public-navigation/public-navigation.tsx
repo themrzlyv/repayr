@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { useLocation, Link as RouterLink } from "@tanstack/react-router";
 
 import { menuItems } from "@/app/lib/constants";
-import { SessionStorageService } from "@/app/lib/session-storage.service";
 
 import {
   Navbar,
@@ -16,8 +15,8 @@ import {
   Link,
 } from "@heroui/react";
 
-import { verifySessionQueryOption } from "@/app/modules/root-app/infra/query-options/verify-session.query-option";
 import { useQuery } from "@tanstack/react-query";
+import { accountInfoQueryOption } from "@/app/modules/account/infra/query-options/account-info.query-option";
 
 export function PublicNavigation() {
   const location = useLocation();
@@ -28,13 +27,13 @@ export function PublicNavigation() {
     isLoading: sessionLoading,
     error,
     data,
-  } = useQuery(verifySessionQueryOption());
+  } = useQuery(accountInfoQueryOption());
 
-  const hasSession = Boolean(SessionStorageService.getUserId());
+  const hasSession = Boolean(data?.id);
 
   const isSessionError = useMemo(() => {
-    return !!error || !data?.session?.isAuthenticated;
-  }, [error, data?.session?.isAuthenticated]);
+    return !!error || !data?.id;
+  }, [error, data?.id]);
 
   const renderMenuItem = useMemo(() => {
     if (sessionLoading && hasSession) {

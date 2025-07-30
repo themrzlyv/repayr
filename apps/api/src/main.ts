@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 import { CoreModule } from './core/core.module';
-import { SessionMiddleware } from './shared/middlewares/session-middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(CoreModule);
@@ -19,10 +18,6 @@ async function bootstrap() {
   });
 
   app.use(cookieParser(config.getOrThrow<string>('COOKIES_SECRET')));
-
-  const sessionMiddleware = app.get(SessionMiddleware);
-
-  app.use(sessionMiddleware.middleware);
 
   app.useGlobalPipes(
     new ValidationPipe({

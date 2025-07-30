@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { verifyCsrfToken } from '../utils/csrf.util';
+import { CSRF_TOKEN } from '../data/constants';
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
@@ -15,7 +16,7 @@ export class CsrfGuard implements CanActivate {
 
     if (
       !csrfHeader ||
-      !verifyCsrfToken(req.session.csrfSecret, String(csrfHeader))
+      !verifyCsrfToken(req.cookies[CSRF_TOKEN], String(csrfHeader))
     ) {
       throw new ForbiddenException('Invalid CSRF token');
     }

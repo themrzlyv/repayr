@@ -3,6 +3,7 @@ import { AuthAdapter } from "../auth.adapter";
 import type { SignInFormSchemaType } from "../../interface/schema/sign-in-form.schema";
 import type { SignInResponse } from "../types/sign-in.response";
 import { router } from "@/app/lib/base-router";
+import { useAuthStore } from "../../interface/stores/use-auth.store";
 
 export function loginMutationOption(
   options?: UseMutationOptions<SignInResponse, unknown, SignInFormSchemaType>
@@ -11,7 +12,13 @@ export function loginMutationOption(
     mutationFn: (data: SignInFormSchemaType) =>
       AuthAdapter.getInstance().signIn(data),
     mutationKey: ["sign-in"],
-    onSuccess: () => router.navigate({ to: "/account/dashboard" }),
     ...options,
+    onSuccess: async (...args) => {
+      const { setAcessToken } = useAuthStore.getState();
+      setAcessToken({ accessToken: args[0].accessToken });
+
+      router.navigate({ to: "/account/dashboard" });
+      options?.onSuccess?.(...args);
+    },
   };
 }

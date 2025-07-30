@@ -7,15 +7,17 @@ import {
   Post,
   Put,
   Query,
+  Req,
 } from '@nestjs/common';
 
 import { DebtService } from './debt.service';
-import { Session } from 'express-session';
 import { CreateDebtInput } from './inputs/create-debt.input';
 import { Auth } from '@/src/shared/decorators/auth.decorator';
-import { Authorized } from '@/src/shared/decorators/authorized.decorator';
 import { DebtListQuery } from './inputs/debt-list.input';
 import { DebtLendingOrchestratorService } from '../orchestrators/debt-lending.orchestrator';
+import { Request } from 'express';
+import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
+import { RequestUser } from '@/src/shared/decorators/request-user.decorator';
 
 @Controller('debt')
 @Auth()
@@ -28,20 +30,20 @@ export class DebtController {
   @Post('create')
   public createDebt(
     @Body() input: CreateDebtInput,
-    @Authorized() session: Session,
+    @RequestUser() user: RequestUserEntity,
   ) {
     return this.debtLendingOrchestratorService.createDebtWithOptionalLending(
       input,
-      session.user.id,
+      user.id,
     );
   }
 
   @Get('list')
   public async getDebts(
-    @Authorized() session: Session,
+    @RequestUser() user: RequestUserEntity,
     @Query() query: DebtListQuery,
   ) {
-    return this.debtService.getDebts(session, query);
+    return this.debtService.getDebts(user.id, query);
   }
 
   @Get(':id')

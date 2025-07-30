@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -16,38 +17,38 @@ import { RolesGuard } from '@/src/shared/guards/roles.guard';
 
 import { CategoryService } from './category.service';
 import { CreateCategoryInput } from './inputs/create-category.input';
-import { SessionAuthGuard } from '@/src/shared/guards/session-auth.guard';
-import { Authorized } from '@/src/shared/decorators/authorized.decorator';
 import { CategoryQueriesInput } from './inputs/category-queries.input';
-import { CsrfGuard } from '@/src/shared/guards/csrf.guard';
-import { Session } from 'express-session';
+import { Auth } from '@/src/shared/decorators/auth.decorator';
+import { Request } from 'express';
+import { RequestUser } from '@/src/shared/decorators/request-user.decorator';
+import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
 
 @Controller('category')
-@UseGuards(SessionAuthGuard, CsrfGuard, RolesGuard)
+@Auth()
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post('create')
   public async createCategory(
     @Body() input: CreateCategoryInput,
-    @Authorized() session: Session,
+    @RequestUser() user: RequestUserEntity,
   ) {
-    return this.categoryService.createCategory(input, session);
+    return this.categoryService.createCategory(input, user);
   }
 
   @Get('')
   public async getCategories(
-    @Authorized() session: Session,
+    @RequestUser() user: RequestUserEntity,
     @Query() query: CategoryQueriesInput,
   ) {
-    return await this.categoryService.getCategories(session.user.id, query);
+    return await this.categoryService.getCategories(user.id, query);
   }
 
   @Get('summary')
-  public async getCategoriesSummary(@Authorized() session: Session) {
+  public async getCategoriesSummary(@RequestUser() user: RequestUserEntity) {
     return await this.categoryService.getCategoriesSummary(
-      session.user.id,
-      session.user.currency,
+      user.id,
+      user.currency,
     );
   }
 

@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import * as crypto from 'crypto';
 import { lookup } from 'geoip-lite';
 import * as countries from 'i18n-iso-countries';
 import DeviceDetector = require('device-detector-js');
@@ -42,7 +43,7 @@ function getDeviceInfo(userAgent: string) {
   };
 }
 
-export function getSessionMetadata(
+function getSessionMetadata(
   req: Request,
   userAgent: string,
 ): SessionMetaData {
@@ -55,4 +56,22 @@ export function getSessionMetadata(
     location,
     device,
   };
+}
+
+export function generateDeviceFingerprint(
+  req: Request,
+  userAgent: string,
+): string {
+  const { ip, location, device } = getSessionMetadata(req, userAgent);
+
+  const rawData = [
+    ip,
+    location.country,
+    location.city,
+    device.browser,
+    device.os,
+    device.type,
+  ].join('|');
+
+  return crypto.createHash('sha256').update(rawData).digest('hex');
 }

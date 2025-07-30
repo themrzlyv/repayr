@@ -144,14 +144,19 @@ model Contact {
 model Session {
   id String @id @default(cuid())
 
-  isAuthenticated Boolean
-  expire          DateTime
-  csrfSecret      String?
+  csrfSecret String?
+  token      String  @unique
 
-  metadata Json?
+  fingerprint String
+
+  expire    DateTime
+  rotatedAt DateTime?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("Session")
 }

@@ -13,51 +13,103 @@ import { CreateAccountInput } from './inputs/create-account.input';
 
 import { LoginInput } from './inputs/login.input';
 import { hash, verify } from 'argon2';
-import { IS_DEV_ENV } from '@/src/shared/utils/is-dev.util';
-import { getSessionMetadata } from '@/src/shared/utils/session-metadata.util';
-import { generateCsrfSecret } from '@/src/shared/utils/csrf.util';
+import {
+  generateCsrfSecret,
+  generateCsrfToken,
+} from '@/src/shared/utils/csrf.util';
 import { slugify } from '@/src/shared/utils/slugify.util';
+import { JwtTokenService } from '../jwt-token/jwt-token.service';
+import { CookieService } from '@/src/shared/services/cookie.service';
+import { generateDeviceFingerprint } from '@/src/shared/utils/session-metadata.util';
+import { REFRESH_TOKEN } from '@/src/shared/data/constants';
+import { SessionService } from '../session/session.service';
 
 @Injectable()
 export class AuthService {
-  public constructor(private readonly prismaService: PrismaService) {}
+  public constructor(
+    private cookieService: CookieService,
+    private readonly prismaService: PrismaService,
+    private readonly jwtTokenService: JwtTokenService,
+    private readonly sessionService: SessionService,
+  ) {}
+
+  public async refresh(req: Request, res: Response) {
+    const oldRefreshToken = req.cookies[REFRESH_TOKEN];
+    const { sub, role, currency } = req.refreshPayload;
+
+    const newCsrfSecret = generateCsrfSecret();
+    const csrfToken = generateCsrfToken(newCsrfSecret);
+
+    const accessToken = this.jwtTokenService.generateAccessToken({
+      sub,
+      role,
+      currency,
+    });
+
+    const refreshToken = this.jwtTokenService.generateRefreshToken(
+      {
+        sub,
+        role,
+        currency,
+      },
+      { expiresIn: req.refreshPayload.exp },
+    );
+
+    await this.sessionService.updateSessionToken(
+      oldRefreshToken,
+      refreshToken,
+      newCsrfSecret,
+    );
+
+    this.cookieService.setRefreshTokenCookie(res, refreshToken);
+
+    this.cookieService.setCsrfSecretCookie(res, newCsrfSecret);
+    return { accessToken, csrfToken };
+  }
 
   public async login(input: LoginInput, req: Request, res: Response) {
     const user = await this.prismaService.user.findUnique({
       where: { email: input.email },
     });
+
     if (!user || !user.password)
       throw new NotFoundException('Invalid credentials');
 
     const isPasswordValid = await verify(user.password, input.password);
     if (!isPasswordValid) throw new UnauthorizedException('Invalid password');
 
-    const { password, ...safeUser } = user;
-
-    return new Promise<void>((resolve, reject) => {
-      req.session.regenerate((err) => {
-        if (err) {
-          reject(new Error('Failed to regenerate session: ' + err.message));
-          return;
-        }
-
-        const metadata = getSessionMetadata(req, req.headers['user-agent']);
-
-        req.session.isAuthenticated = true;
-        req.session.metadata = metadata;
-        req.session.user = safeUser;
-        req.session.csrfSecret = generateCsrfSecret();
-
-        req.session.save((err) => {
-          if (err) {
-            reject(new Error('Failed to save session: ' + err.message));
-          } else {
-            res.status(200).json({ user: safeUser });
-            resolve();
-          }
-        });
-      });
+    const accessToken = this.jwtTokenService.generateAccessToken({
+      sub: user.id,
+      role: user.role,
+      currency: user.currency,
     });
+
+    const refreshToken = this.jwtTokenService.generateRefreshToken({
+      sub: user.id,
+      role: user.role,
+      currency: user.currency,
+    });
+
+    const csrfSecret = generateCsrfSecret();
+
+    const deviceFingerprint = generateDeviceFingerprint(
+      req,
+      req.headers['user-agent'],
+    );
+
+    await this.sessionService.createSession({
+      token: refreshToken,
+      csrfSecret,
+      fingerprint: deviceFingerprint,
+      expire: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      userId: user.id,
+    });
+
+    this.cookieService.setCsrfSecretCookie(res, csrfSecret);
+
+    this.cookieService.setRefreshTokenCookie(res, refreshToken);
+
+    return { accessToken };
   }
 
   public async loginWithGoogle(
@@ -70,8 +122,7 @@ export class AuthService {
     });
 
     if (!existUser) {
-      const { email, provider, providerId, firstName, lastName, avatar } =
-        user;
+      const { email, provider, providerId, firstName, lastName, avatar } = user;
       const isExistEmail = await this.prismaService.user.findUnique({
         where: { email: user.email },
       });
@@ -105,14 +156,40 @@ export class AuthService {
       `);
     }
 
-    req.session.isAuthenticated = true;
-    req.session.user = existUser;
-    req.session.metadata = getSessionMetadata(req, req.headers['user-agent']);
-    req.session.csrfSecret = generateCsrfSecret();
+    const accessToken = this.jwtTokenService.generateAccessToken({
+      sub: existUser.id,
+      role: existUser.role,
+      currency: existUser.currency,
+    });
+
+    const refreshToken = this.jwtTokenService.generateRefreshToken({
+      sub: existUser.id,
+      role: existUser.role,
+      currency: existUser.currency,
+    });
+
+    const csrfSecret = generateCsrfSecret();
+
+    const deviceFingerprint = generateDeviceFingerprint(
+      req,
+      req.headers['user-agent'],
+    );
+
+    await this.sessionService.createSession({
+      token: refreshToken,
+      csrfSecret,
+      fingerprint: deviceFingerprint,
+      expire: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      userId: existUser.id,
+    });
+
+    this.cookieService.setCsrfSecretCookie(res, csrfSecret);
+
+    this.cookieService.setRefreshTokenCookie(res, refreshToken);
 
     return res.send(`
       <script>
-        window.opener?.postMessage({type: 'google-auth-success', uid: '${existUser.id}' }, '*');
+        window.opener?.postMessage({type: 'google-auth-success', access: '${accessToken}' }, '*');
         window.close();
       </script>
   `);
@@ -142,23 +219,13 @@ export class AuthService {
   }
 
   public async logout(req: Request, res: Response) {
-    return new Promise<void>((resolve, reject) => {
-      req.session.destroy((err) => {
-        if (err) {
-          reject(new Error('Failed to destroy session: ' + err.message));
-        } else {
-          res.clearCookie('repayr.sid', {
-            httpOnly: true,
-            secure: !IS_DEV_ENV,
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            sameSite: IS_DEV_ENV ? 'lax' : 'strict',
-            path: '/',
-          });
-          res.status(200).json({ message: 'Logged out successfully' });
-          setImmediate(() => resolve());
-        }
-      });
+    const refreshToken = req.cookies[REFRESH_TOKEN];
+    await this.prismaService.session.delete({
+      where: {
+        token: refreshToken,
+      },
     });
+    return this.cookieService.clearTokensCookie(res);
   }
 
   private async generateUniqueTagName(
