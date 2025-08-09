@@ -137,27 +137,36 @@ exports.Prisma.UserScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.DebtScalarFieldEnum = {
+exports.Prisma.TransactionScalarFieldEnum = {
   id: 'id',
+  type: 'type',
   name: 'name',
   description: 'description',
-  payDate: 'payDate',
   status: 'status',
+  dueDate: 'dueDate',
   categoryId: 'categoryId',
-  userId: 'userId',
+  ownerId: 'ownerId',
+  linkedTransactionId: 'linkedTransactionId',
+  initiatorId: 'initiatorId',
+  approverId: 'approverId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DebtScalarFieldEnum = {
+  id: 'id',
+  transactionId: 'transactionId',
+  borrowerId: 'borrowerId',
+  counterpartyId: 'counterpartyId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
 exports.Prisma.LendingScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  description: 'description',
-  dueDate: 'dueDate',
-  status: 'status',
-  categoryId: 'categoryId',
-  userId: 'userId',
-  debtId: 'debtId',
+  transactionId: 'transactionId',
+  lenderId: 'lenderId',
+  counterpartyId: 'counterpartyId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -174,8 +183,7 @@ exports.Prisma.AmountScalarFieldEnum = {
   id: 'id',
   value: 'value',
   currency: 'currency',
-  debtId: 'debtId',
-  lendingId: 'lendingId',
+  transactionId: 'transactionId',
   paymentId: 'paymentId'
 };
 
@@ -187,12 +195,6 @@ exports.Prisma.CategoryScalarFieldEnum = {
   userId: 'userId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
-};
-
-exports.Prisma.ContactScalarFieldEnum = {
-  id: 'id',
-  phone: 'phone',
-  email: 'email'
 };
 
 exports.Prisma.SessionScalarFieldEnum = {
@@ -207,9 +209,27 @@ exports.Prisma.SessionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  actorId: 'actorId',
+  type: 'type',
+  transactionId: 'transactionId',
+  paymentId: 'paymentId',
+  data: 'data',
+  readAt: 'readAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -220,6 +240,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 exports.Role = exports.$Enums.Role = {
   ADMIN: 'ADMIN',
@@ -232,11 +258,17 @@ exports.Currency = exports.$Enums.Currency = {
   USD: 'USD'
 };
 
+exports.TransactionType = exports.$Enums.TransactionType = {
+  DEBT: 'DEBT',
+  LENDING: 'LENDING'
+};
+
 exports.Status = exports.$Enums.Status = {
   PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
   PAID: 'PAID',
-  OVERDUE: 'OVERDUE',
-  CANCELLED: 'CANCELLED'
+  OVERDUE: 'OVERDUE'
 };
 
 exports.CategoryType = exports.$Enums.CategoryType = {
@@ -244,15 +276,24 @@ exports.CategoryType = exports.$Enums.CategoryType = {
   CUSTOM: 'CUSTOM'
 };
 
+exports.NotificationType = exports.$Enums.NotificationType = {
+  TRANSACTION_CREATED: 'TRANSACTION_CREATED',
+  TRANSACTION_ACCEPTED: 'TRANSACTION_ACCEPTED',
+  TRANSACTION_REJECTED: 'TRANSACTION_REJECTED',
+  PAYMENT_ADDED: 'PAYMENT_ADDED',
+  TRANSACTION_PAID: 'TRANSACTION_PAID'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
+  Transaction: 'Transaction',
   Debt: 'Debt',
   Lending: 'Lending',
   Payment: 'Payment',
   Amount: 'Amount',
   Category: 'Category',
-  Contact: 'Contact',
-  Session: 'Session'
+  Session: 'Session',
+  Notification: 'Notification'
 };
 
 /**

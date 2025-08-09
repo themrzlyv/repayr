@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
-
 import { PrismaService } from '@/src/core/prisma/prisma.service';
-
-import { Session } from 'express-session';
-import { UpdateAccountInput } from './inputs/update-account.input';
+import { UpdateAccountDto } from './dtos/update-account.dto';
 
 @Injectable()
 export class AccountService {
@@ -12,38 +9,6 @@ export class AccountService {
   public async me(userId: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
-      include: {
-        debts: {
-          include: {
-            amount: true,
-            category: {
-              select: {
-                id: true,
-                title: true,
-                icon: true,
-                type: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-            },
-          },
-        },
-        lendings: {
-          include: {
-            amount: true,
-            category: {
-              select: {
-                id: true,
-                title: true,
-                icon: true,
-                type: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     return user;
@@ -75,7 +40,7 @@ export class AccountService {
     return users;
   }
 
-  public async updateAccount(userId: string, input: UpdateAccountInput) {
+  public async updateAccount(userId: string, input: UpdateAccountDto) {
     await this.prismaService.user.update({
       where: { id: userId },
       data: { currency: input.currency },

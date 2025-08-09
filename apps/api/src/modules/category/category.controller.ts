@@ -7,19 +7,15 @@ import {
   Post,
   Put,
   Query,
-  Req,
-  UseGuards,
 } from '@nestjs/common';
 
 import { Role } from '@/prisma/generated';
 import { Roles } from '@/src/shared/decorators/roles.decorator';
-import { RolesGuard } from '@/src/shared/guards/roles.guard';
 
 import { CategoryService } from './category.service';
-import { CreateCategoryInput } from './inputs/create-category.input';
-import { CategoryQueriesInput } from './inputs/category-queries.input';
+import { CreateCategoryDto } from './dtos/create-category.dto';
+import { CategoryListDto } from './dtos/category-list.dto';
 import { Auth } from '@/src/shared/decorators/auth.decorator';
-import { Request } from 'express';
 import { RequestUser } from '@/src/shared/decorators/request-user.decorator';
 import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
 
@@ -30,7 +26,7 @@ export class CategoryController {
 
   @Post('create')
   public async createCategory(
-    @Body() input: CreateCategoryInput,
+    @Body() input: CreateCategoryDto,
     @RequestUser() user: RequestUserEntity,
   ) {
     return this.categoryService.createCategory(input, user);
@@ -39,7 +35,7 @@ export class CategoryController {
   @Get('')
   public async getCategories(
     @RequestUser() user: RequestUserEntity,
-    @Query() query: CategoryQueriesInput,
+    @Query() query: CategoryListDto,
   ) {
     return await this.categoryService.getCategories(user.id, query);
   }
@@ -62,7 +58,7 @@ export class CategoryController {
   @Roles(Role.ADMIN)
   public async updateCategoryDetails(
     @Param('id') id: string,
-    @Body() input: CreateCategoryInput,
+    @Body() input: CreateCategoryDto,
   ) {
     return this.categoryService.updateCategoryDetails({ id, input });
   }

@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { ExchangeValueInput } from './inputs/exchange-value.input';
+import { ExchangeValueDto } from './dtos/exchange-value.dto';
 import { ExchangeValueResponseType } from './types/exchange-value.reponse';
 
 @Injectable()
@@ -8,7 +8,7 @@ export class ExchangeService {
     from,
     to,
     value,
-  }: ExchangeValueInput): Promise<ExchangeValueResponseType> {
+  }: ExchangeValueDto): Promise<ExchangeValueResponseType> {
     const exchangeRates = await this.getExchangeRates(to);
     const exchangedValue = value * exchangeRates[from.toUpperCase()];
 

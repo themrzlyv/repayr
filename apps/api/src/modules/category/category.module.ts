@@ -12,5 +12,6 @@ import { JwtTokenModule } from '../jwt-token/jwt-token.module';
   imports: [ExchangeModule, JwtTokenModule],
   controllers: [CategoryController],
   providers: [CategoryService, AccountService],
+  exports: [CategoryService],
 })
 export class CategoryModule {}

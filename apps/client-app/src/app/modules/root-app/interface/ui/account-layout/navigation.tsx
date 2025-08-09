@@ -3,6 +3,7 @@ import { accountInfoQueryOption } from "@/app/modules/account/infra/query-option
 import { logoutMutationOption } from "@/app/modules/auth/infra/mutation-options/logout.mutation-option";
 import {
   Avatar,
+  Button,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -17,10 +18,15 @@ import { updateAccountMutationOption } from "@/app/modules/account/infra/mutatio
 import {
   Currency,
   type CurrencyEnum,
-} from "@/app/modules/debts/domain/enums/currency.enum";
+} from "@/app/modules/transactions/domain/enums/currency.enum";
+import { Bell, Dot, DotIcon } from "lucide-react";
+import { notificationListQueryOption } from "@/app/modules/notifications/infra/query-options/notification-list.query-option";
+import { markReadMutationOption } from "@/app/modules/notifications/infra/mutation-options/mark-read.mutation-option";
+import { useMemo } from "react";
 
 export function Navigation() {
   const { data, isLoading } = useQuery(accountInfoQueryOption());
+  const { data: notificationData } = useQuery(notificationListQueryOption({}));
 
   const { mutateAsync: logout } = useMutation(logoutMutationOption());
 
@@ -28,7 +34,19 @@ export function Navigation() {
     updateAccountMutationOption()
   );
 
+  const { mutateAsync: markReadyMutation } = useMutation(
+    markReadMutationOption()
+  );
+
   const fullName = [data?.firstName, data?.lastName].filter(Boolean).join(" ");
+
+  const hasNewNotification = useMemo(() => {
+    if (!notificationData?.notifications) return false;
+
+    return notificationData?.notifications?.some(
+      notification => !notification.readAt
+    );
+  }, [notificationData?.notifications]);
 
   const handleLogout = async () => {
     await logout();
@@ -48,6 +66,58 @@ export function Navigation() {
         />
       </NavbarContent>
       <NavbarContent justify="end">
+        {notificationData && (
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <Button variant="light" size="sm" className="relative  min-w-max">
+                {hasNewNotification && (
+                  <Dot className="absolute -top-1 right-0 text-red-500" />
+                )}
+                <Bell />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              aria-label="Notifications"
+              onAction={key => markReadyMutation(key as string)}
+              variant="flat"
+              items={notificationData?.notifications}
+            >
+              {notificationData?.notifications?.map(notification => {
+                return (
+                  <DropdownItem
+                    key={notification.id}
+                    classNames={{
+                      base: "max-w-xs relative",
+                    }}
+                    startContent={
+                      <Avatar
+                        isBordered
+                        as="button"
+                        className="transition-transform"
+                        color="secondary"
+                        name={notification?.data?.name}
+                        src={notification?.data?.avatar}
+                        size="sm"
+                      />
+                    }
+                  >
+                    <div>
+                      <span className=" text-xs font-light">
+                        {notification.data.message}
+                      </span>
+                      {notification.readAt === null && (
+                        <DotIcon
+                          size={40}
+                          className="text-red-500 absolute top-2 -right-2"
+                        />
+                      )}
+                    </div>
+                  </DropdownItem>
+                );
+              })}
+            </DropdownMenu>
+          </Dropdown>
+        )}
         {isLoading ? (
           <Skeleton className="w-10 h-10 rounded-full my-2" />
         ) : (

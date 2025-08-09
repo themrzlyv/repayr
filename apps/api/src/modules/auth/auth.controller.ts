@@ -12,10 +12,10 @@ import { Request, Response } from 'express';
 
 import { GoogleAuth } from '@/src/shared/guards/auth-google.guard';
 
-import { CreateAccountInput } from './inputs/create-account.input';
+import { CreateAccountDto } from './dtos/create-account.dto';
 
 import { AuthService } from './auth.service';
-import { LoginInput } from './inputs/login.input';
+import { LoginDto } from './dtos/login.dto';
 import { JwtRefreshGuard } from '@/src/shared/guards/jwt-refresh.guard';
 
 @Controller('auth')
@@ -24,7 +24,7 @@ export class AuthController {
 
   @Post('login')
   public async login(
-    @Body() input: LoginInput,
+    @Body() input: LoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -53,7 +53,7 @@ export class AuthController {
   }
 
   @Post('register')
-  public async register(@Body() input: CreateAccountInput) {
+  public async register(@Body() input: CreateAccountDto) {
     return this.authService.register(input);
   }
 

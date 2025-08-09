@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Put, Query } from '@nestjs/common';
 
 import { AccountService } from './account.service';
-import { UpdateAccountInput } from './inputs/update-account.input';
-import { SearchAccountQuery } from './inputs/search-account.query';
+import { UpdateAccountDto } from './dtos/update-account.dto';
+import { SearchAccountDto } from './dtos/search-account.dto';
 import { Auth } from '@/src/shared/decorators/auth.decorator';
 import { RequestUser } from '@/src/shared/decorators/request-user.decorator';
 import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
@@ -20,7 +20,7 @@ export class AccountController {
   @Get('search')
   public async searchAccount(
     @RequestUser() user: RequestUserEntity,
-    @Query() query: SearchAccountQuery,
+    @Query() query: SearchAccountDto,
   ) {
     return this.accountService.searchAccount(user.id, query.tagName);
   }
@@ -28,7 +28,7 @@ export class AccountController {
   @Put('update')
   public updateAccount(
     @RequestUser() user: RequestUserEntity,
-    @Body() input: UpdateAccountInput,
+    @Body() input: UpdateAccountDto,
   ) {
     return this.accountService.updateAccount(user.id, input);
   }

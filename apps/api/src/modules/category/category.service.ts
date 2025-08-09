@@ -2,15 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 
-import { CreateCategoryInput } from './inputs/create-category.input';
-import { CategoryQueriesInput } from './inputs/category-queries.input';
+import { CreateCategoryDto } from './dtos/create-category.dto';
+import { CategoryListDto } from './dtos/category-list.dto';
 import { CategoryTypeEnum } from './types/category-type.enum';
 import { Currency, Role } from '@/prisma/generated';
-import { Session } from 'express-session';
 import { ExchangeService } from '../exchange/exchange.service';
 import { CategorySummaryMap } from './types/category-summary-type';
-import { TokenPayloadDto } from '../jwt-token/dtos/token-payload.dto';
 import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
+import { BASE_CATEGORY_SELECT } from '@/src/shared/data/prisma-selects';
 
 @Injectable()
 export class CategoryService {
@@ -20,13 +19,13 @@ export class CategoryService {
   ) {}
 
   public async createCategory(
-    input: CreateCategoryInput,
+    input: CreateCategoryDto,
     userData: RequestUserEntity,
   ) {
     const { title, icon, type } = input;
 
     const isExistCategory = await this.prismaService.category.findUnique({
-      where: { title },
+      where: { userId_title: { title, userId: userData.id } },
     });
 
     if (isExistCategory) {
@@ -51,23 +50,11 @@ export class CategoryService {
     return true;
   }
 
-  public async getCategories(userId: string, query: CategoryQueriesInput) {
+  public async getCategories(userId: string, query: CategoryListDto) {
     const where = this.buildCategoryFilter(userId, query?.filter);
 
     const categories = await this.prismaService.category.findMany({
       where,
-      include: {
-        debts: {
-          where: {
-            user: {
-              id: userId,
-            },
-          },
-          include: {
-            amount: true,
-          },
-        },
-      },
     });
 
     return { categories };
@@ -77,11 +64,12 @@ export class CategoryService {
     const categories = await this.prismaService.category.findMany({
       where: { user: { id: userId } },
       include: {
-        debts: {
+        transactions: {
           where: {
-            user: {
+            owner: {
               id: userId,
             },
+            status: { equals: 'ACCEPTED' },
           },
           include: {
             amount: true,
@@ -96,7 +84,7 @@ export class CategoryService {
     const result: CategorySummaryMap = {};
 
     for (const category of categories) {
-      const total = category.debts.reduce((sum, debt) => {
+      const total = category.transactions.reduce((sum, debt) => {
         const value = debt.amount?.value ?? 0;
         const fromCurrency = debt.amount?.currency ?? targetCurrency;
         const rate = exchangeRates[fromCurrency.toUpperCase()];
@@ -115,6 +103,7 @@ export class CategoryService {
   public async getCategoryDetails(id: string) {
     const category = await this.prismaService.category.findUnique({
       where: { id },
+      select: BASE_CATEGORY_SELECT,
     });
 
     return { category };
@@ -125,7 +114,7 @@ export class CategoryService {
     input,
   }: {
     id: string;
-    input: CreateCategoryInput;
+    input: CreateCategoryDto;
   }) {
     const category = await this.prismaService.category.update({
       where: { id },
@@ -162,9 +151,9 @@ export class CategoryService {
         };
       case 'USED':
         return {
-          debts: {
+          transactions: {
             some: {
-              user: {
+              owner: {
                 id: userId,
               },
             },

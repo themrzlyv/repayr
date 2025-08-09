@@ -1,3 +1,4 @@
+import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { JwtTokenService } from '@/src/modules/jwt-token/jwt-token.service';
 import {
   CanActivate,
@@ -9,9 +10,12 @@ import { Request } from 'express';
 
 @Injectable()
 export class JwtAccessGuard implements CanActivate {
-  constructor(private readonly jwtTokenService: JwtTokenService) {}
+  constructor(
+    private readonly jwtTokenService: JwtTokenService,
+    private readonly prismaService: PrismaService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
     const authHeader = req.headers['authorization'];
 
@@ -27,7 +31,15 @@ export class JwtAccessGuard implements CanActivate {
 
     try {
       const payload = this.jwtTokenService.verifyAccessToken(token);
-      req.accessPayload = payload;
+      const user = await this.prismaService.user.findUnique({
+        where: { id: payload.sub },
+      });
+      const newPayload = {
+        ...payload,
+        role: user.role,
+        currency: user.currency,
+      };
+      req.accessPayload = newPayload;
       return true;
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired access token');

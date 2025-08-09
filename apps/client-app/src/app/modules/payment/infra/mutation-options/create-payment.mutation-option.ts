@@ -13,7 +13,7 @@ export function createPaymentMutationOption(
     ...options,
 
     onSuccess: async (...args) => {
-      await queryClient.invalidateQueries({ queryKey: ["debt-list"] });
+      await queryClient.invalidateQueries({ queryKey: ["transaction-list"] });
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
       await queryClient.invalidateQueries({ queryKey: ["categories-summary"] });
       options?.onSuccess?.(...args);

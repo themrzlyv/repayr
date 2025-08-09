@@ -26,8 +26,17 @@ model User {
   avatar    String?
   currency  Currency @default(USD)
 
-  debts    Debt[]    @relation("UserDebts")
-  lendings Lending[] @relation("UserLendings")
+  debts                Debt[]    @relation("UserDebts")
+  counterpartyDebts    Debt[]    @relation("DebtCounterparty")
+  lendings             Lending[] @relation("UserLendings")
+  counterpartyLendings Lending[] @relation("LendingCounterparty")
+
+  transactions           Transaction[] @relation("UserTransactions")
+  approvableTransactions Transaction[] @relation("TransactionApprover")
+  initiatedTransactions  Transaction[] @relation("TransactionInitiator")
+
+  receivedNotifications Notification[] @relation("UserNotifications")
+  sentNotifications     Notification[] @relation("NotificationActor")
 
   payments   Payment[]
   sessions   Session[]
@@ -39,22 +48,49 @@ model User {
   @@map("users")
 }
 
-model Debt {
-  id          String   @id @default(cuid())
+model Transaction {
+  id   String          @id @default(cuid())
+  type TransactionType
+
   name        String?
   description String?
-  payDate     DateTime
-  status      Status   @default(PENDING)
+  status      Status  @default(PENDING)
 
-  amount Amount? @relation("DebtToAmount")
+  amount  Amount?  @relation("TransactionToAmount")
+  dueDate DateTime
 
   categoryId String
-  category   Category @relation("CategoryDebts", fields: [categoryId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  userId String
-  user   User   @relation("UserDebts", fields: [userId], references: [id])
+  ownerId String
+  owner   User   @relation("UserTransactions", fields: [ownerId], references: [id])
 
-  lending Lending? @relation("DebtToLending")
+  linkedTransactionId String?      @unique
+  linkedTransaction   Transaction? @relation("TransactionLink", fields: [linkedTransactionId], references: [id])
+  mirrorTransaction   Transaction? @relation("TransactionLink")
+
+  initiatorId String
+  approverId  String?
+  initiator   User    @relation("TransactionInitiator", fields: [initiatorId], references: [id])
+  approver    User?   @relation("TransactionApprover", fields: [approverId], references: [id])
+
+  debt    Debt?    @relation("TransactionToDebt")
+  lending Lending? @relation("TransactionToLending")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model Debt {
+  id            String      @id @default(cuid())
+  transactionId String      @unique
+  transaction   Transaction @relation("TransactionToDebt", fields: [transactionId], references: [id], onDelete: Cascade)
+
+  borrowerId String
+  borrower   User   @relation("UserDebts", fields: [borrowerId], references: [id])
+
+  counterpartyId String
+  counterparty   User   @relation("DebtCounterparty", fields: [counterpartyId], references: [id])
 
   payments Payment[]
 
@@ -63,22 +99,15 @@ model Debt {
 }
 
 model Lending {
-  id          String   @id @default(cuid())
-  name        String?
-  description String?
-  dueDate     DateTime
-  status      Status   @default(PENDING)
+  id            String      @id @default(cuid())
+  transactionId String      @unique
+  transaction   Transaction @relation("TransactionToLending", fields: [transactionId], references: [id], onDelete: Cascade)
 
-  amount Amount? @relation("LendingToAmount")
+  lenderId String
+  lender   User   @relation("UserLendings", fields: [lenderId], references: [id])
 
-  categoryId String
-  category   Category @relation("CategoryLendings", fields: [categoryId], references: [id])
-
-  userId String
-  user   User   @relation("UserLendings", fields: [userId], references: [id])
-
-  debtId String @unique
-  debt   Debt?  @relation("DebtToLending", fields: [debtId], references: [id], onDelete: Cascade)
+  counterpartyId String
+  counterparty   User   @relation("LendingCounterparty", fields: [counterpartyId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -105,40 +134,29 @@ model Amount {
   value    Float
   currency Currency
 
-  debtId String? @unique
-  debt   Debt?   @relation("DebtToAmount", fields: [debtId], references: [id], onDelete: Cascade)
-
-  lendingId String?  @unique
-  lending   Lending? @relation("LendingToAmount", fields: [lendingId], references: [id], onDelete: Cascade)
+  transactionId String?      @unique
+  transaction   Transaction? @relation("TransactionToAmount", fields: [transactionId], references: [id], onDelete: Cascade)
 
   paymentId String?  @unique
   payment   Payment? @relation("PaymentToAmount", fields: [paymentId], references: [id], onDelete: Cascade)
 }
 
 model Category {
-  id       String       @id @default(cuid())
-  title    String       @unique
-  icon     String
-  debts    Debt[]       @relation("CategoryDebts")
-  lendings Lending[]    @relation("CategoryLendings")
-  type     CategoryType
+  id    String @id @default(cuid())
+  title String
+  icon  String
+
+  type CategoryType
+
+  transactions Transaction[]
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-}
 
-enum CategoryType {
-  SYSTEM
-  CUSTOM
-}
-
-model Contact {
-  id    String  @id @default(cuid())
-  phone String
-  email String?
+  @@unique([userId, title])
 }
 
 model Session {
@@ -161,6 +179,49 @@ model Session {
   @@map("Session")
 }
 
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("UserNotifications", fields: [userId], references: [id])
+
+  actorId String?
+  actor   User?   @relation("NotificationActor", fields: [actorId], references: [id])
+
+  type NotificationType
+
+  transactionId String?
+  paymentId     String?
+
+  data Json?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, readAt])
+  @@index([transactionId])
+  @@index([paymentId])
+}
+
+enum NotificationType {
+  TRANSACTION_CREATED
+  TRANSACTION_ACCEPTED
+  TRANSACTION_REJECTED
+  PAYMENT_ADDED
+  TRANSACTION_PAID
+}
+
+enum CategoryType {
+  SYSTEM
+  CUSTOM
+}
+
+enum TransactionType {
+  DEBT
+  LENDING
+}
+
 enum Currency {
   AZN
   EUR
@@ -169,9 +230,10 @@ enum Currency {
 
 enum Status {
   PENDING
+  ACCEPTED
+  REJECTED
   PAID
   OVERDUE
-  CANCELLED
 }
 
 enum Role {

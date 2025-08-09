@@ -9,9 +9,9 @@ import { Response, Request } from 'express';
 import { User } from '@/prisma/generated';
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 
-import { CreateAccountInput } from './inputs/create-account.input';
+import { CreateAccountDto } from './dtos/create-account.dto';
 
-import { LoginInput } from './inputs/login.input';
+import { LoginDto } from './dtos/login.dto';
 import { hash, verify } from 'argon2';
 import {
   generateCsrfSecret,
@@ -67,7 +67,7 @@ export class AuthService {
     return { accessToken, csrfToken };
   }
 
-  public async login(input: LoginInput, req: Request, res: Response) {
+  public async login(input: LoginDto, req: Request, res: Response) {
     const user = await this.prismaService.user.findUnique({
       where: { email: input.email },
     });
@@ -195,7 +195,7 @@ export class AuthService {
   `);
   }
 
-  public async register(input: CreateAccountInput) {
+  public async register(input: CreateAccountDto) {
     const { email, password, firstName, lastName } = input;
     const isExistEmail = await this.prismaService.user.findUnique({
       where: { email: input.email },

@@ -4,8 +4,10 @@ export const queryKeys = {
   SEARCH_ACCOUNT: "search-account",
   CATEGORIES_SUMMARY: "categories-summary",
   CATEGORIES: "categories",
-  DEBT_DETAILS: "debt-details",
-  DEBT_LIST: "debt-list",
-  LENDING_DETAILS: "lending-details",
-  LENDING_LIST: "lending-list",
+
+  TRANSACTION_LIST: "transaction-list",
+  TRANSACTION_DETAILS: "transaction-details",
+
+  NOTIFICATION_LIST: "notification-list",
+  NOTIFICATION_DETAILS: "notification-details",
 };

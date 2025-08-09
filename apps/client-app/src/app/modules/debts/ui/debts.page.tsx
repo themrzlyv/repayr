@@ -2,11 +2,12 @@ import { Button } from "@heroui/react";
 import { DownloadIcon } from "@/app/assets/icons";
 import { useQuery } from "@tanstack/react-query";
 import * as Icons from "react-icons/ai";
-import { AddOrUpdateDebt } from "./add-or-update-debt/add-or-update-debt";
 import { useDrawerStore } from "@/app/shared/components/drawer/use-drawer.store";
 import { categoriesQueryOption } from "../../category/infra/query-options/categories.query-option";
-import { DebtsTable } from "./debts-table/debts-table";
 import { categoriesSummaryQueryOption } from "../../category/infra/query-options/categories-summary.query-option";
+import { TransactionsTable } from "../../transactions/ui/transactions-table/transactions-table";
+import { TransactionType } from "../../transactions/domain/enums/transaction-type.enum";
+import { AddTransaction } from "../../transactions/ui/add-transaction/add-transaction";
 
 export function DebtsPage() {
   const { openDrawer } = useDrawerStore();
@@ -18,7 +19,7 @@ export function DebtsPage() {
   const handleOpenAddDebtModal = () => {
     openDrawer({
       title: "Add Debt",
-      content: <AddOrUpdateDebt />,
+      content: <AddTransaction transactionType={TransactionType.DEBT} />,
     });
   };
 
@@ -77,7 +78,7 @@ export function DebtsPage() {
           </Button>
         </div>
 
-        <DebtsTable />
+        <TransactionsTable type={TransactionType.DEBT} />
       </div>
     </div>
   );
