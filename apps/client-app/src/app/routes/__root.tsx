@@ -4,6 +4,7 @@ import { Modal } from "../shared/components/modal/modal";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { Drawer } from "../shared/components/drawer/drawer";
+import { useNotificationSocket } from "../modules/notifications/ui/use-notification-socket";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -12,6 +13,8 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootApp() {
+  useNotificationSocket({ page: 1, limit: 5 });
+
   return (
     <>
       <Outlet />

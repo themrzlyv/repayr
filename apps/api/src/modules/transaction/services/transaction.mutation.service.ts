@@ -4,9 +4,7 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { ExchangeService } from '../exchange/exchange.service';
 import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
-import { CreateTransactionDto } from './dtos/create-transaction.dto';
 import {
   CategoryType,
   Currency,
@@ -14,141 +12,24 @@ import {
   Status,
   TransactionType,
 } from '@/prisma/generated';
-import { UpdateTransactionStatusDto } from './dtos/update-transaction-status.dto';
-import { GetTransactionsDto } from './dtos/get-transactions.dto';
 import { BASE_TRANSACTION_SELECT } from '@/src/shared/data/prisma-selects';
-import { DebtService } from '../debt/debt.service';
-import { CategoryService } from '../category/category.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EVENT } from '@/src/shared/domain/events/event-types';
 import { BaseEvent } from '@/src/shared/domain/events/base-event';
+import { DebtService } from '../../debt/debt.service';
+import { CategoryService } from '../../category/category.service';
+import { CreateTransactionDto } from '../dtos/create-transaction.dto';
+import { UpdateTransactionStatusDto } from '../dtos/update-transaction-status.dto';
+import { isFullyPaid } from '../domain/is-fully-paid';
 
 @Injectable()
-export class TransactionService {
+export class TransactionMutationService {
   public constructor(
     private readonly prismaService: PrismaService,
     private readonly debtService: DebtService,
     private readonly categoryService: CategoryService,
-    private readonly exchangeService: ExchangeService,
     private readonly events: EventEmitter2,
   ) {}
-
-  private readonly baseTransactionSelect = {
-    ...BASE_TRANSACTION_SELECT,
-  } satisfies Prisma.TransactionSelect;
-
-  private get transactionSelectWithLink(): Prisma.TransactionSelect {
-    return {
-      ...this.baseTransactionSelect,
-      linkedTransaction: {
-        select: {
-          ...this.baseTransactionSelect,
-          linkedTransaction: undefined,
-        },
-      },
-    };
-  }
-
-  public async getUserTransactions(userId: string, query: GetTransactionsDto) {
-    const { page, limit, sortBy, order, status, type, searchQuery } = query;
-
-    const where: Prisma.TransactionWhereInput = {
-      OR: [
-        { ownerId: userId },
-        { debt: { borrowerId: userId } },
-        { lending: { lenderId: userId } },
-      ],
-      ...(type && { type }),
-      ...(status && { status }),
-    };
-
-    const [items, total] = await this.prismaService.$transaction([
-      this.prismaService.transaction.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { [sortBy]: order },
-        select: {
-          ...this.baseTransactionSelect,
-          linkedTransaction: {
-            select: {
-              ...this.baseTransactionSelect,
-              linkedTransaction: undefined,
-            },
-          },
-        },
-      }),
-      this.prismaService.transaction.count({ where }),
-    ]);
-
-    const transactions = await Promise.all(
-      items.map(async (tx) => {
-        if (type === TransactionType.LENDING) {
-          const { linkedTransaction, ...rest } = tx;
-
-          const counterpartyTotalPayments =
-            await this.addTotals(linkedTransaction);
-
-          return {
-            ...rest,
-            totalPayments: counterpartyTotalPayments.totalPayments,
-          };
-        } else {
-          return await this.addTotals(tx);
-        }
-      }),
-    );
-
-    return {
-      transactions,
-      pagination: {
-        total,
-        page,
-        pageCount: Math.ceil(total / limit),
-      },
-    };
-  }
-
-  public async getTransactionById(
-    user: RequestUserEntity,
-    transactionId: string,
-  ) {
-    const transaction = await this.prismaService.transaction.findUnique({
-      where: { id: transactionId },
-      select: {
-        ...this.baseTransactionSelect,
-        linkedTransaction: {
-          select: {
-            ...this.baseTransactionSelect,
-            linkedTransaction: undefined,
-          },
-        },
-      },
-    });
-
-    if (!transaction) {
-      throw new BadRequestException('Transaction not found');
-    }
-
-    const canSee =
-      transaction.owner.id === user.id ||
-      transaction.debt?.borrower?.id === user.id ||
-      transaction.lending?.lender?.id === user.id;
-
-    if (!canSee) {
-      throw new ForbiddenException('Access denied to this transaction');
-    }
-
-    const baseForTotals =
-      transaction.type === TransactionType.LENDING &&
-      transaction.linkedTransaction
-        ? transaction.linkedTransaction
-        : transaction;
-
-    const { totalPayments } = await this.addTotals(baseForTotals);
-
-    return { ...transaction, totalPayments };
-  }
 
   public async createTransaction(
     user: RequestUserEntity,
@@ -313,7 +194,7 @@ export class TransactionService {
     const transaction = await this.prismaService.transaction.findUnique({
       where: { id },
       select: {
-        ...this.baseTransactionSelect,
+        ...BASE_TRANSACTION_SELECT,
         approverId: true,
         initiatorId: true,
         linkedTransactionId: true,
@@ -325,9 +206,7 @@ export class TransactionService {
       transaction.amount.currency,
     );
 
-    const EPS = 0.005;
-    const fullyPaid =
-      Number(totalPaid) >= Number(transaction.amount.value) - EPS;
+    const fullyPaid = isFullyPaid(totalPaid, transaction.amount.value);
 
     if (!fullyPaid || transaction.status === Status.PAID) {
       return { changedToPaid: false };
@@ -350,31 +229,6 @@ export class TransactionService {
       changedToPaid: true,
       recipientId,
       linkedTransactionId: transaction.linkedTransactionId!,
-    };
-  }
-
-  private async addTotals(
-    transaction: Prisma.TransactionGetPayload<{
-      select: typeof BASE_TRANSACTION_SELECT;
-    }>,
-  ): Promise<
-    Prisma.TransactionGetPayload<{ select: typeof BASE_TRANSACTION_SELECT }> & {
-      totalPayments: { value: number; currency: Currency };
-    }
-  > {
-    const total =
-      transaction.debt.payments.length > 0
-        ? await this.debtService.computeTotalPaid(
-            transaction.debt,
-            transaction.amount.currency,
-          )
-        : 0;
-    return {
-      ...transaction,
-      totalPayments: {
-        value: Number(total.toFixed(2)),
-        currency: transaction.amount.currency,
-      },
     };
   }
 }

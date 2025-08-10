@@ -2,20 +2,22 @@ import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from './dtos/create-payment.dto';
 import { ExchangeService } from '../exchange/exchange.service';
-import { Currency } from '@/prisma/generated';
+import { Currency, Status } from '@/prisma/generated';
 import { DebtService } from '../debt/debt.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { TransactionService } from '../transaction/transaction.service';
 import { RequestUserEntity } from '@/src/shared/types/request-user.entity';
 import { EVENT } from '@/src/shared/domain/events/event-types';
 import { BaseEvent } from '@/src/shared/domain/events/base-event';
+import { TransactionQueryService } from '../transaction/services/transaction.query.service';
+import { TransactionMutationService } from '../transaction/services/transaction.mutation.service';
 
 @Injectable()
 export class PaymentService {
   public constructor(
     private readonly prismaService: PrismaService,
     private readonly debtService: DebtService,
-    private readonly transactionService: TransactionService,
+    private readonly transactionQueryService: TransactionQueryService,
+    private readonly transactionMutationService: TransactionMutationService,
     private readonly exchangeService: ExchangeService,
     private readonly events: EventEmitter2,
   ) {}
@@ -23,7 +25,7 @@ export class PaymentService {
   public async createPayment(input: CreatePaymentDto, user: RequestUserEntity) {
     const { amount, transactionId, debtId } = input;
 
-    await this.transactionService.getTransactionById(user, transactionId);
+    await this.transactionQueryService.getTransactionById(user, transactionId);
 
     const rest = await this.debtService.computeRestPayment(debtId);
 
@@ -46,18 +48,40 @@ export class PaymentService {
       },
     });
 
-    this.events.emit(
-      EVENT.PAYMENT_CREATED,
-      new BaseEvent({
-        name: EVENT.PAYMENT_CREATED,
-        actorId: user.id,
-        payload: {
-          paymentId: payment.id,
-          debtId,
-          transactionId,
-        },
-      }),
-    );
+    const { changedToPaid, linkedTransactionId, recipientId } =
+      await this.transactionMutationService.updateStatusAfterPayment(
+        transactionId,
+        user.id,
+      );
+
+    if (changedToPaid) {
+      this.events.emit(
+        EVENT.TRANSACTION_STATUS_CHANGED,
+        new BaseEvent({
+          name: EVENT.TRANSACTION_STATUS_CHANGED,
+          actorId: user.id,
+          payload: {
+            mainTransactionId: transactionId,
+            linkedTransactionId: linkedTransactionId,
+            recipientId: recipientId,
+            newStatus: Status.PAID,
+          },
+        }),
+      );
+    } else {
+      this.events.emit(
+        EVENT.PAYMENT_CREATED,
+        new BaseEvent({
+          name: EVENT.PAYMENT_CREATED,
+          actorId: user.id,
+          payload: {
+            paymentId: payment.id,
+            debtId,
+            transactionId,
+          },
+        }),
+      );
+    }
 
     return true;
   }

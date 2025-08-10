@@ -1,4 +1,4 @@
-import { Navigation } from "./navigation";
+import { Navigation } from "../navigation/navigation";
 import { SideBar } from "./side-bar";
 
 export function AccountLayout({ children }: { children: React.ReactNode }) {

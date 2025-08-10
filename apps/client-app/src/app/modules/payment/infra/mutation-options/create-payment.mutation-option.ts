@@ -2,6 +2,7 @@ import type { UseMutationOptions } from "@tanstack/react-query";
 import { queryClient } from "@/app/lib/query-client";
 import type { CreatePaymentInputType } from "../types/create-payment.input";
 import { PaymentAdapter } from "../payment.adapter";
+import { queryKeys } from "@/app/shared/data/query-keys";
 
 export function createPaymentMutationOption(
   options?: UseMutationOptions<boolean, unknown, CreatePaymentInputType>
@@ -13,9 +14,13 @@ export function createPaymentMutationOption(
     ...options,
 
     onSuccess: async (...args) => {
-      await queryClient.invalidateQueries({ queryKey: ["transaction-list"] });
-      await queryClient.invalidateQueries({ queryKey: ["categories"] });
-      await queryClient.invalidateQueries({ queryKey: ["categories-summary"] });
+      await queryClient.invalidateQueries({
+        queryKey: [queryKeys.TRANSACTION_LIST],
+      });
+      await queryClient.invalidateQueries({ queryKey: [queryKeys.CATEGORIES] });
+      await queryClient.invalidateQueries({
+        queryKey: [queryKeys.CATEGORIES_SUMMARY],
+      });
       options?.onSuccess?.(...args);
     },
   };

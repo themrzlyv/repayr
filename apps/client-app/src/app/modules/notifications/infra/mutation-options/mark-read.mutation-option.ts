@@ -16,6 +16,9 @@ export function markReadMutationOption(
       await queryClient.invalidateQueries({
         queryKey: [queryKeys.NOTIFICATION_LIST],
       });
+      await queryClient.invalidateQueries({
+        queryKey: [queryKeys.NOTIFICATION_UNREAD],
+      });
       options?.onSuccess?.(...args);
     },
   };

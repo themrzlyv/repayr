@@ -10,4 +10,5 @@ export const queryKeys = {
 
   NOTIFICATION_LIST: "notification-list",
   NOTIFICATION_DETAILS: "notification-details",
+  NOTIFICATION_UNREAD: "notification-unread",
 };

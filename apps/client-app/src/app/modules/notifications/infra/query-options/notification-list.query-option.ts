@@ -12,5 +12,6 @@ export function notificationListQueryOption(query: GetNotificationsQueryType) {
     queryFn: () =>
       NotificationsAdapter.getInstance().getNotificationList(query),
     placeholderData: previousData => previousData,
+    staleTime: 10_000,
   });
 }

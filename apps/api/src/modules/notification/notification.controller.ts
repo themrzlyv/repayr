@@ -19,6 +19,11 @@ export class NotificationController {
     return this.notificationService.list(user.id, query.page, query.limit);
   }
 
+  @Get('unread')
+  public async getUnreadCount(@RequestUser() user: RequestUserEntity) {
+    return this.notificationService.unread(user.id);
+  }
+
   @Put(':id')
   public async markRead(
     @RequestUser() user: RequestUserEntity,

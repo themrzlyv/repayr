@@ -14,6 +14,7 @@ import { TransactionModule } from '../modules/transaction/transaction.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DebtModule } from '../modules/debt/debt.module';
 import { NotificationModule } from '../modules/notification/notification.module';
+import { RealtimeModule } from '../modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { NotificationModule } from '../modules/notification/notification.module'
     AmountModule,
     TransactionModule,
     NotificationModule,
+    RealtimeModule,
   ],
 })
 export class CoreModule {}

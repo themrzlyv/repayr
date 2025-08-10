@@ -1,16 +1,14 @@
-import type { AmountEntity } from "@/app/modules/transactions/domain/entities/amount.entity";
-import type { TransactionTypeEnum } from "@/app/modules/transactions/domain/enums/transaction-type.enum";
+import type { NotificationTypeEnum } from "../enums/notification-type.enum";
+import type { NotificationPayloadValueObject } from "../value-objects/notification-payload.value-object";
 
 export type NotificationEntity = {
   id: string;
-  data: {
-    name: string;
-    avatar: string;
-    type: TransactionTypeEnum;
-    dueDate: string;
-    amount: AmountEntity;
-    message: string;
-  };
+  actorId: string;
+  paymentId: string | null;
+  transactionId: string;
+  type: NotificationTypeEnum;
+  userId: string;
+  data: NotificationPayloadValueObject;
   readAt: string | null;
   createdAt: string;
   updatedAt: string;

@@ -52,7 +52,7 @@ export function CreatePayment({ transaction }: Props) {
   const handleSetMax = () => {
     const maxValue =
       transaction.amount.value - (transaction?.totalPayments?.value || 0);
-    setValue("amount.value", String(maxValue));
+    setValue("amount.value", parseFloat(maxValue.toFixed(2)).toString());
     setValue("amount.currency", transaction.amount.currency);
   };
 
